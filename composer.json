@@ -1,0 +1,17 @@
+{
+    "name": "sumitkumar/event",
+    "autoload": {
+        "psr-4": {
+            "Sumitkumar\\Event\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "codebysumit19",
+            "email": "sumit.kumar@solutionara.com"
+        }
+    ],
+    "require": {
+        "monolog/monolog": "^2.10"
+    }
+}
