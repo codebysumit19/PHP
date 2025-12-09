@@ -5,6 +5,36 @@ if (!isset($_SESSION['email'])) {
     exit;
 }
 
+// Auto logout after 5 minutes (300 seconds) of inactivity
+
+$timeout = 5 * 60; // 5 minutes
+
+
+
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout) {
+
+    // too long since last activity: destroy session and go to login
+
+    $_SESSION = [];
+
+    session_unset();
+
+    session_destroy();
+
+    header('Location: ../login.php');
+
+    exit;
+
+}
+
+
+
+// update last activity time stamp
+
+$_SESSION['last_activity'] = time();
+
+
+
 // make Export button work
 if (isset($_POST['export'])) {
     header('Location: export.php');
@@ -63,6 +93,7 @@ if ($search !== '') {
 <head>
     <title>Employee Data</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
 
     <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -148,8 +179,9 @@ include '../header.php';
 ?>
 
 <div class="table-container">
-
+<h1>Employees Data</h1>
     <form method="get" style="margin-bottom:12px; text-align:right;">
+        
         <input type="text" name="search" placeholder="Search by name/email/designation"
                value="<?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?>"
                style="padding:6px 8px;border-radius:4px;border:1px solid #ccc;">

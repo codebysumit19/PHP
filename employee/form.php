@@ -4,12 +4,44 @@ if (!isset($_SESSION['email'])) {
     header('Location: ../login.php');
     exit;
 }
+
+// Auto logout after 5 minutes (300 seconds) of inactivity
+
+$timeout = 5 * 60; // 5 minutes
+
+
+
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout) {
+
+    // too long since last activity: destroy session and go to login
+
+    $_SESSION = [];
+
+    session_unset();
+
+    session_destroy();
+
+    header('Location: ../login.php');
+
+    exit;
+
+}
+
+
+
+// update last activity time stamp
+
+$_SESSION['last_activity'] = time();
+
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Employee Form</title>
+<link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -79,7 +111,7 @@ include '../header.php';
 <div class="main-wrapper">
     <div>
         <form method="POST" action="send.php">
-
+            <h1>Employees Form</h1>
             <h2>Full Name:
                 <input type="text" name="ename" pattern="[A-Za-z\s]+" placeholder="Enter full name" required>
             </h2>
@@ -107,7 +139,7 @@ include '../header.php';
                        title="Only letters and spaces allowed" placeholder="Enter designation" required>
             </h2>
             <h2>Salary:
-                <input type="text" name="salary" placeholder="Enter salary" required>
+                <input type="text" name="salary" placeholder="Enter salary" value="₹" required>
             </h2>
             <h2>Date of Joining:
                 <input type="date" name="joining_date" required>

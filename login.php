@@ -55,6 +55,7 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
+    <link rel="icon" type="image/png" href="fi-snsuxx-php-logo.jpg">
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{

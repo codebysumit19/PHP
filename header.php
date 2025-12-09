@@ -22,7 +22,7 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
                 background:#38bdf8;display:flex;align-items:center;
                 justify-content:center;overflow:hidden;flex-shrink:0;
             ">
-                <img src="https://seekvectors.com/files/download/PHP-01.png"
+                <img src="https://friconix.com/jpg/fi-snsuxx-php-logo.jpg"
                      alt="PHP Logo"
                      style="width:70%;height:70%;object-fit:contain;display:block;">
             </div>
@@ -87,18 +87,19 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
                 </div>
             </div>
             <hr class="user-card-divider">
-            <!-- IMPORTANT: set your folder name here instead of myapp if different -->
-            <form method="post" action="./logout.php" style="margin:0;">
-                <button type="submit" id="logout-btn" class="btn-primary btn-small user-card-logout">
-                    Logout
-                </button>
-            </form>
+            <!-- Logout is now a link, not a form button -->
+            <a href="./logout.php" id="logout-link"
+               class="btn-primary btn-small user-card-logout"
+               style="display:block;text-align:center;">
+                Logout
+            </a>
         </div>
     </div>
 
     <!-- Logout confirmation modal -->
     <div class="logout-overlay" id="logout-overlay">
         <div class="logout-modal">
+            <button type="button" class="logout-close" id="logout-close">&times;</button>
             <div class="logout-title">Log out?</div>
             <div class="logout-text">
                 You will be signed out of your current session.
@@ -281,6 +282,31 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
             box-shadow:0 18px 45px rgba(15,23,42,0.9);
             border:1px solid rgba(148,163,184,0.5);
             animation:logoutFadeIn 0.18s ease-out;
+            position:relative;
+        }
+        .logout-close{
+            position:absolute;
+            top:8px;
+            right:10px;
+            width:24px;
+            height:24px;
+            border-radius:999px;
+            border:1px solid transparent;
+            background:transparent;
+            color:#9ca3af;
+            font-size:18px;
+            line-height:1;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:background 0.18s,color 0.18s,border-color 0.18s,transform 0.15s;
+        }
+        .logout-close:hover{
+            background:#111827;
+            border-color:#4b5563;
+            color:#e5e7eb;
+            transform:translateY(-1px);
         }
         .logout-title{
             font-size:16px;
@@ -322,12 +348,13 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    var avatar  = document.getElementById('user-avatar');
-    var menu    = document.getElementById('user-menu');
-    var overlay = document.getElementById('logout-overlay');
-    var btnMain = document.getElementById('logout-btn');
-    var btnOk   = document.getElementById('logout-confirm');
-    var btnNo   = document.getElementById('logout-cancel');
+    var avatar   = document.getElementById('user-avatar');
+    var menu     = document.getElementById('user-menu');
+    var overlay  = document.getElementById('logout-overlay');
+    var logoutLn = document.getElementById('logout-link');
+    var btnOk    = document.getElementById('logout-confirm');
+    var btnNo    = document.getElementById('logout-cancel');
+    var btnClose = document.getElementById('logout-close');
 
     if (avatar && menu) {
         avatar.addEventListener('click', function (e) {
@@ -344,24 +371,27 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // open confirmation instead of submitting directly
-    if (btnMain && overlay) {
-        btnMain.addEventListener('click', function (e) {
+    function hideOverlay() {
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    // open confirmation when clicking Logout in menu
+    if (logoutLn && overlay) {
+        logoutLn.addEventListener('click', function (e) {
             e.preventDefault();
             overlay.style.display = 'flex';
         });
     }
 
-    if (btnNo && overlay) {
-        btnNo.addEventListener('click', function () {
-            overlay.style.display = 'none';
-        });
-    }
+    // Cancel / X close actions
+    if (btnNo)    btnNo.addEventListener('click', hideOverlay);
+    if (btnClose) btnClose.addEventListener('click', hideOverlay);
 
-    if (btnOk && overlay && btnMain) {
+    // Confirm logout -> redirect to logout.php
+    if (btnOk && logoutLn) {
         btnOk.addEventListener('click', function () {
-            overlay.style.display = 'none';
-            btnMain.closest('form').submit();
+            hideOverlay();
+            window.location.href = logoutLn.href;
         });
     }
 });

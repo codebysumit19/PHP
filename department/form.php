@@ -4,12 +4,29 @@ if (!isset($_SESSION['email'])) {
     header('Location: ../login.php');
     exit;
 }
+
+// Auto logout after 5 minutes (300 seconds) of inactivity
+$timeout = 5 * 60; // 5 minutes
+
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout) {
+    // too long since last activity: destroy session and go to login
+    $_SESSION = [];
+    session_unset();
+    session_destroy();
+    header('Location: ../login.php');
+    exit;
+}
+
+// update last activity time stamp
+$_SESSION['last_activity'] = time();
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Department Form</title>
+<link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -88,32 +105,33 @@ include '../header.php';
 
 
 <div class="main-wrapper">
+    
     <div>
         <form action="send.php" method="POST">
-
+            <h1>Department Form</h1>
             <h2>Department Name:
-                <input type="text" name="dname" pattern="[A-Za-z\s]+"
+                <input type="text" name="dname" placeholder="Enter Department" pattern="[A-Za-z\s]+"
                        title="Only letters and spaces allowed" required>
             </h2>
 
             <h2>Email:
-                <input type="email" name="email" required>
+                <input type="email" name="email" placeholder="Enter Email" required>
             </h2>
 
             <h2>Contact Number:
-                <input type="tel" name="number" minlength="10" maxlength="13" required>
+                <input type="tel" name="number" minlength="10" maxlength="13" placeholder="Enter Number" required>
             </h2>
 
             <h2>Number of Employees:
-                <input type="number" name="nemployees" min="1" required>
+                <input type="number" name="nemployees" min="1" placeholder="Enter Total number of Employees" required>
             </h2>
 
             <h2>Department Responsibilities:
-                <input type="text" name="resp" required>
+                <input type="text" name="resp" placeholder="Enter Responsibilities" required>
             </h2>
 
             <h2>Annual Budget:
-                <input type="text" name="budget" required>
+                <input type="text" name="budget" value="₹" placeholder="Enter Annual Budget" required>
             </h2>
 
             <h2>Department Status:
@@ -122,7 +140,7 @@ include '../header.php';
             </h2>
 
             <h2>Description:
-                <textarea name="description" placeholder="Description"></textarea>
+                <textarea name="description" placeholder="Write Description"></textarea>
             </h2>
 
             <button type="submit">Submit</button>

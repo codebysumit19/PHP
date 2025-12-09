@@ -4,12 +4,44 @@ if (!isset($_SESSION['email'])) {
     header('Location: ../login.php');
     exit;
 }
+
+// Auto logout after 5 minutes (300 seconds) of inactivity
+
+$timeout = 5 * 60; // 5 minutes
+
+
+
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout) {
+
+    // too long since last activity: destroy session and go to login
+
+    $_SESSION = [];
+
+    session_unset();
+
+    session_destroy();
+
+    header('Location: ../login.php');
+
+    exit;
+
+}
+
+
+
+// update last activity time stamp
+
+$_SESSION['last_activity'] = time();
+
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Event Form</title>
+<link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
 
 <style>
     * {
@@ -151,9 +183,9 @@ include '../header.php'; // SAME HEADER AS DASHBOARD
 
 <div class="main-wrapper">
     <div class="event-form-card">
-        <h1 class="event-form-title">Event Form</h1>
-
+         
         <form method="POST" action="send.php">
+            <h1>Event Form</h1>
             <div class="field-group">
                 <label for="name">Event Name</label>
                 <input type="text" id="name" name="name"

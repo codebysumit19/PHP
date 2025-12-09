@@ -4,12 +4,44 @@ if (!isset($_SESSION['email'])) {
     header('Location: ../login.php');
     exit;
 }
+
+// Auto logout after 5 minutes (300 seconds) of inactivity
+
+$timeout = 5 * 60; // 5 minutes
+
+
+
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout) {
+
+    // too long since last activity: destroy session and go to login
+
+    $_SESSION = [];
+
+    session_unset();
+
+    session_destroy();
+
+    header('Location: ../login.php');
+
+    exit;
+
+}
+
+
+
+// update last activity time stamp
+
+$_SESSION['last_activity'] = time();
+
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Project Form</title>
+<link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -78,6 +110,7 @@ include '../header.php';
 <div class="main-wrapper">
     <div>
         <form method="POST" action="send.php">
+            <h1>Project Form</h1>
 
             <h2>Project Name:
                 <input type="text" name="pname" placeholder="Project Name" required>
