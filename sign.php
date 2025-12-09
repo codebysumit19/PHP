@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param("sss", $user, $email, $hash);
 
     if ($stmt->execute()) {
-        header("Location: login.php");
+        header("Location: submit.php");
         exit;
     } else {
         echo "Error creating account.";
