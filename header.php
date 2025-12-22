@@ -14,7 +14,7 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
 
 // detect if header is included from subfolder (event/, employee/, department/, project/)
 $dirName = basename(__DIR__);
-$base = in_array($dirName, ['event','employee','department','project']) ? '../' : './';
+$base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '../' : './';
 ?>
 <header style="
     display:flex;align-items:center;justify-content:space-between;
@@ -23,15 +23,15 @@ $base = in_array($dirName, ['event','employee','department','project']) ? '../' 
 ">
     <div style="display:flex;align-items:center;gap:12px;min-width:180px;">
         <a href="<?php echo $base; ?>link.php"
-           style="text-decoration:none;color:white;display:flex;align-items:center;gap:8px;">
+            style="text-decoration:none;color:white;display:flex;align-items:center;gap:8px;">
             <div style="
                 width:40px;height:40px;border-radius:50%;
                 display:flex;align-items:center;
                 justify-content:center;overflow:hidden;flex-shrink:0;
             ">
                 <img src="https://friconix.com/jpg/fi-snsuxx-php-logo.jpg"
-                     alt="PHP Logo"
-                     style="width:80%;height:80%;object-fit:contain;display:block;border-radius:50%">
+                    alt="PHP Logo"
+                    style="width:80%;height:80%;object-fit:contain;display:block;border-radius:50%">
             </div>
         </a>
         <h3 style="margin:0;font-size:17px;white-space:nowrap;">
@@ -45,8 +45,8 @@ $base = in_array($dirName, ['event','employee','department','project']) ? '../' 
         text-align:center;
     ">
         <a href="<?php echo $base; ?>link.php"
-           class="nav-link <?php echo ($currentPage === 'link.php') ? 'active' : ''; ?>"
-           style="color:white;text-decoration:none;padding:4px 10px;border-radius:4px;
+            class="nav-link <?php echo ($currentPage === 'link.php') ? 'active' : ''; ?>"
+            style="color:white;text-decoration:none;padding:4px 10px;border-radius:4px;
                   transition:background 0.15s,color 0.15s;">
             Home
         </a>
@@ -56,7 +56,7 @@ $base = in_array($dirName, ['event','employee','department','project']) ? '../' 
             <button class="nav-dropbtn" style="color:white;text-decoration:none;padding:4px 10px;border-radius:4px;
                   transition:background 0.15s,color 0.15s;">Event</button>
             <div class="nav-dropdown-content">
-                <a href="<?php echo $base; ?>event/form.php">Event Form</a>
+                <a href="event/form.php">Event Form</a>
                 <a href="<?php echo $base; ?>event/get.php">Event Data</a>
             </div>
         </div>
@@ -89,14 +89,14 @@ $base = in_array($dirName, ['event','employee','department','project']) ? '../' 
         </div>
 
         <a href="<?php echo $base; ?>privacy.php"
-           class="nav-link"
-           style="color:white;text-decoration:none;padding:4px 10px;border-radius:4px;
+            class="nav-link"
+            style="color:white;text-decoration:none;padding:4px 10px;border-radius:4px;
                   transition:background 0.15s,color 0.15s;">
             Privacy Policy &amp; Terms
         </a>
         <a href="<?php echo $base; ?>contact.php"
-           class="nav-link"
-           style="color:white;text-decoration:none;padding:4px 10px;border-radius:4px;
+            class="nav-link"
+            style="color:white;text-decoration:none;padding:4px 10px;border-radius:4px;
                   transition:background 0.15s,color 0.15s;">
             Contact Us
         </a>
@@ -112,7 +112,7 @@ $base = in_array($dirName, ['event','employee','department','project']) ? '../' 
         <?php endif; ?>
 
         <div id="user-avatar"
-             style="width:34px;height:34px;border-radius:50%;
+            style="width:34px;height:34px;border-radius:50%;
                     background:#FFFFFF;display:flex;align-items:center;
                     justify-content:center;font-weight:600;font-size:16px;
                     color:#68A691;cursor:pointer;user-select:none;
@@ -136,8 +136,8 @@ $base = in_array($dirName, ['event','employee','department','project']) ? '../' 
             </div>
             <hr class="user-card-divider">
             <a href="<?php echo $base; ?>logout.php" id="logout-link"
-               class="btn-primary btn-small user-card-logout"
-               style="display:block;text-align:center;">
+                class="btn-primary btn-small user-card-logout"
+                style="display:block;text-align:center;">
                 Logout
             </a>
         </div>
@@ -162,92 +162,110 @@ $base = in_array($dirName, ['event','employee','department','project']) ? '../' 
     </div>
 
     <style>
-        @media (max-width: 768px){
+        @media (max-width: 768px) {
+
             header nav span,
-            header nav a{
-                font-size:11px;
+            header nav a {
+                font-size: 11px;
             }
         }
-        @media (max-width: 480px){
-            header{
-                flex-direction:column;
-                align-items:flex-start;
+
+        @media (max-width: 480px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
             }
-            header > div,
-            header nav{
-                justify-content:flex-start;
+
+            header>div,
+            header nav {
+                justify-content: flex-start;
             }
         }
+
+        header {
+            /* or .navbar / .top-bar */
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+
         header nav a:hover,
-        header nav span:hover{
-            background:#3A3D3B;
-            color:#787E7A;
+        header nav span:hover {
+            background: #3A3D3B;
+            color: #787E7A;
         }
 
-        header nav a.active{
-            background:#9ac4b6;
-            border-radius:4px;
+        header nav a.active {
+            background: #9ac4b6;
+            border-radius: 4px;
         }
 
-        .nav-dropdown{
-            position:relative;
-            display:inline-block;
+        .nav-dropdown {
+            position: relative;
+            display: inline-block;
         }
-        .nav-dropbtn{
-            background:transparent;
-            border:none;
-            color:#ffffff;
-            padding:4px 8px;
-            border-radius:4px;
-            font:inherit;
-            cursor:pointer;
+
+        .nav-dropbtn {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font: inherit;
+            cursor: pointer;
         }
-        .nav-dropdown-content{
-            display:none;
-            position:absolute;
-            background:#ffffff;
-            min-width:140px;
-            box-shadow:0 4px 10px rgba(0,0,0,0.15);
-            border-radius:6px;
-            z-index:999;
-            overflow:hidden;
+
+        .nav-dropdown-content {
+            display: none;
+            position: absolute;
+            background: #ffffff;
+            min-width: 140px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            z-index: 999;
+            overflow: hidden;
         }
-        .nav-dropdown-content a{
-            color:#111827;
-            padding:8px 10px;
-            text-decoration:none;
-            display:block;
-            font-size:13px;
-            text-align:left;
+
+        .nav-dropdown-content a {
+            color: #111827;
+            padding: 8px 10px;
+            text-decoration: none;
+            display: block;
+            font-size: 13px;
+            text-align: left;
         }
-        .nav-dropdown-content a:hover{
-            background:#e5e7eb;
+
+        .nav-dropdown-content a:hover {
+            background: #e5e7eb;
         }
-        .nav-dropdown:hover .nav-dropdown-content{
-            display:block;
+
+        .nav-dropdown:hover .nav-dropdown-content {
+            display: block;
         }
-        .nav-dropdown:hover .nav-dropbtn{
-            background:#3A3D3B;
-            color:#f9fafb;
+
+        .nav-dropdown:hover .nav-dropbtn {
+            background: #3A3D3B;
+            color: #f9fafb;
         }
 
         .btn-primary {
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            gap:6px;
-            padding:8px 16px;
-            border-radius:999px;
-            border:1px solid #38bdf8;
-            background:linear-gradient(135deg,#0f172a,#1f2937);
-            color:#e5e7eb;
-            font-size:13px;
-            font-weight:600;
-            letter-spacing:0.02em;
-            text-transform:uppercase;
-            cursor:pointer;
-            text-decoration:none;
-            box-shadow:0 4px 10px rgba(15,23,42,0.35);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: 1px solid #38bdf8;
+            background: linear-gradient(135deg, #0f172a, #1f2937);
+            color: #e5e7eb;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.35);
             transition:
                 background 0.22s ease,
                 color 0.22s ease,
@@ -255,214 +273,242 @@ $base = in_array($dirName, ['event','employee','department','project']) ? '../' 
                 box-shadow 0.18s ease,
                 transform 0.18s ease;
         }
+
         .btn-small {
-            padding:6px 14px;
-            font-size:12px;
+            padding: 6px 14px;
+            font-size: 12px;
         }
+
         .btn-primary:hover {
-            background:linear-gradient(135deg,#1d4ed8,#3b82f6);
-            color:#f9fafb;
-            border-color:#60a5fa;
-            box-shadow:0 8px 18px rgba(30,64,175,0.55);
-            transform:translateY(-1px);
+            background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+            color: #f9fafb;
+            border-color: #60a5fa;
+            box-shadow: 0 8px 18px rgba(30, 64, 175, 0.55);
+            transform: translateY(-1px);
         }
+
         .btn-primary:active {
-            transform:translateY(0);
-            box-shadow:0 3px 8px rgba(15,23,42,0.45);
+            transform: translateY(0);
+            box-shadow: 0 3px 8px rgba(15, 23, 42, 0.45);
         }
+
         .btn-primary:focus-visible {
-            outline:2px solid #38bdf8;
-            outline-offset:2px;
+            outline: 2px solid #38bdf8;
+            outline-offset: 2px;
         }
 
-        #user-menu{
-            position:absolute;
-            top:48px;
-            right:0;
-            min-width:220px;
-            background:#0b1120;
-            color:#e5e7eb;
-            border-radius:12px;
-            box-shadow:0 14px 35px rgba(15,23,42,0.7);
-            padding:10px 12px 12px;
-            display:none;
-            z-index:999;
-            border:1px solid rgba(148,163,184,0.35);
-        }
-        .user-card-header{
-            display:flex;
-            align-items:center;
-            gap:10px;
-            padding:4px 2px;
-        }
-        .user-card-avatar{
-            width:34px;
-            height:34px;
-            border-radius:50%;
-            background:linear-gradient(135deg,#22c55e,#16a34a);
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-weight:700;
-            font-size:16px;
-            color:#ecfdf5;
-            box-shadow:0 4px 10px rgba(22,163,74,0.6);
-        }
-        .user-card-info{
-            display:flex;
-            flex-direction:column;
-        }
-        .user-card-name{
-            font-size:14px;
-            font-weight:600;
-            color:#f9fafb;
-        }
-        .user-card-subtitle{
-            font-size:11px;
-            color:#9ca3af;
-        }
-        .user-card-divider{
-            border:0;
-            height:1px;
-            margin:8px 0 10px;
-            background:linear-gradient(to right,transparent,#4b5563,transparent);
-        }
-        .user-card-logout{
-            width:100%;
-            justify-content:center;
-        }
-        .user-card-logout:hover{
-            background:linear-gradient(135deg,#b91c1c,#ef4444);
-            border-color:#fecaca;
+        #user-menu {
+            position: absolute;
+            top: 48px;
+            right: 0;
+            min-width: 220px;
+            background: #0b1120;
+            color: #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 14px 35px rgba(15, 23, 42, 0.7);
+            padding: 10px 12px 12px;
+            display: none;
+            z-index: 999;
+            border: 1px solid rgba(148, 163, 184, 0.35);
         }
 
-        .logout-overlay{
-            position:fixed;
-            inset:0;
-            background:rgba(15,23,42,0.55);
-            display:none;
-            align-items:center;
-            justify-content:center;
-            z-index:9999;
+        .user-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 2px;
         }
-        .logout-modal{
-            background:#0b1120;
-            color:#e5e7eb;
-            padding:18px 20px 16px;
-            border-radius:14px;
-            min-width:260px;
-            max-width:320px;
-            box-shadow:0 18px 45px rgba(15,23,42,0.9);
-            border:1px solid rgba(148,163,184,0.5);
-            animation:logoutFadeIn 0.18s ease-out;
-            position:relative;
+
+        .user-card-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: #ecfdf5;
+            box-shadow: 0 4px 10px rgba(22, 163, 74, 0.6);
         }
-        .logout-close{
-            position:absolute;
-            top:8px;
-            right:10px;
-            width:24px;
-            height:24px;
-            border-radius:999px;
-            border:1px solid transparent;
-            background:transparent;
-            color:#9ca3af;
-            font-size:18px;
-            line-height:1;
-            cursor:pointer;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            transition:background 0.18s,color 0.18s,border-color 0.18s,transform 0.15s;
+
+        .user-card-info {
+            display: flex;
+            flex-direction: column;
         }
-        .logout-close:hover{
-            background:#111827;
-            border-color:#4b5563;
-            color:#e5e7eb;
-            transform:translateY(-1px);
+
+        .user-card-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f9fafb;
         }
-        .logout-title{
-            font-size:16px;
-            font-weight:600;
-            margin-bottom:6px;
-            color:#f9fafb;
+
+        .user-card-subtitle {
+            font-size: 11px;
+            color: #9ca3af;
         }
-        .logout-text{
-            font-size:13px;
-            color:#9ca3af;
-            margin-bottom:14px;
+
+        .user-card-divider {
+            border: 0;
+            height: 1px;
+            margin: 8px 0 10px;
+            background: linear-gradient(to right, transparent, #4b5563, transparent);
         }
-        .logout-actions{
-            display:flex;
-            justify-content:flex-end;
-            gap:8px;
+
+        .user-card-logout {
+            width: 100%;
+            justify-content: center;
         }
-        .btn-secondary{
-            padding:6px 12px;
-            border-radius:999px;
-            border:1px solid #4b5563;
-            background:#111827;
-            color:#e5e7eb;
-            font-size:12px;
-            cursor:pointer;
-            transition:background 0.18s,color 0.18s,border-color 0.18s,transform 0.15s;
+
+        .user-card-logout:hover {
+            background: linear-gradient(135deg, #b91c1c, #ef4444);
+            border-color: #fecaca;
         }
-        .btn-secondary:hover{
-            background:#1f2937;
-            border-color:#6b7280;
-            transform:translateY(-1px);
+
+        .logout-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
         }
-        @keyframes logoutFadeIn{
-            from{opacity:0;transform:translateY(6px);}
-            to{opacity:1;transform:translateY(0);}
+
+        .logout-modal {
+            background: #0b1120;
+            color: #e5e7eb;
+            padding: 18px 20px 16px;
+            border-radius: 14px;
+            min-width: 260px;
+            max-width: 320px;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            animation: logoutFadeIn 0.18s ease-out;
+            position: relative;
+        }
+
+        .logout-close {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: #9ca3af;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.15s;
+        }
+
+        .logout-close:hover {
+            background: #111827;
+            border-color: #4b5563;
+            color: #e5e7eb;
+            transform: translateY(-1px);
+        }
+
+        .logout-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #f9fafb;
+        }
+
+        .logout-text {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 14px;
+        }
+
+        .logout-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid #4b5563;
+            background: #111827;
+            color: #e5e7eb;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.15s;
+        }
+
+        .btn-secondary:hover {
+            background: #1f2937;
+            border-color: #6b7280;
+            transform: translateY(-1px);
+        }
+
+        @keyframes logoutFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </header>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    var avatar   = document.getElementById('user-avatar');
-    var menu     = document.getElementById('user-menu');
-    var overlay  = document.getElementById('logout-overlay');
-    var logoutLn = document.getElementById('logout-link');
-    var btnOk    = document.getElementById('logout-confirm');
-    var btnNo    = document.getElementById('logout-cancel');
-    var btnClose = document.getElementById('logout-close');
+    document.addEventListener('DOMContentLoaded', function() {
+        var avatar = document.getElementById('user-avatar');
+        var menu = document.getElementById('user-menu');
+        var overlay = document.getElementById('logout-overlay');
+        var logoutLn = document.getElementById('logout-link');
+        var btnOk = document.getElementById('logout-confirm');
+        var btnNo = document.getElementById('logout-cancel');
+        var btnClose = document.getElementById('logout-close');
 
-    if (avatar && menu) {
-        avatar.addEventListener('click', function (e) {
-            e.stopPropagation();
-            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-        });
+        if (avatar && menu) {
+            avatar.addEventListener('click', function(e) {
+                e.stopPropagation();
+                menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+            });
 
-        document.addEventListener('click', function () {
-            menu.style.display = 'none';
-        });
+            document.addEventListener('click', function() {
+                menu.style.display = 'none';
+            });
 
-        menu.addEventListener('click', function (e) {
-            e.stopPropagation();
-        });
-    }
+            menu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
 
-    function hideOverlay() {
-        if (overlay) overlay.style.display = 'none';
-    }
+        function hideOverlay() {
+            if (overlay) overlay.style.display = 'none';
+        }
 
-    if (logoutLn && overlay) {
-        logoutLn.addEventListener('click', function (e) {
-            e.preventDefault();
-            overlay.style.display = 'flex';
-        });
-    }
+        if (logoutLn && overlay) {
+            logoutLn.addEventListener('click', function(e) {
+                e.preventDefault();
+                overlay.style.display = 'flex';
+            });
+        }
 
-    if (btnNo)    btnNo.addEventListener('click', hideOverlay);
-    if (btnClose) btnClose.addEventListener('click', hideOverlay);
+        if (btnNo) btnNo.addEventListener('click', hideOverlay);
+        if (btnClose) btnClose.addEventListener('click', hideOverlay);
 
-    if (btnOk && logoutLn) {
-        btnOk.addEventListener('click', function () {
-            hideOverlay();
-            window.location.href = logoutLn.href;
-        });
-    }
-});
+        if (btnOk && logoutLn) {
+            btnOk.addEventListener('click', function() {
+                hideOverlay();
+                window.location.href = logoutLn.href;
+            });
+        }
+    });
 </script>

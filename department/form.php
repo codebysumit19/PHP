@@ -18,131 +18,195 @@ $_SESSION['last_activity'] = time();
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Department Form</title>
-<link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
+    <meta charset="UTF-8">
+    <title>Department Form</title>
+    <link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
 
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
-html, body{
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* html, body{
     height:100%;
-}
-body{
-    font-family:Arial,sans-serif;
-    background:linear-gradient(135deg,#e8f5e9,#ffffff);
-    display:flex;
-    flex-direction:column;
-}
-.main-wrapper{
-    flex:1;
-    display:flex;
-    justify-content:center;
-    align-items:flex-start;
-    padding:20px 12px;
-}
-form{
-    background:#fff;padding:20px;border-radius:10px;
-    box-shadow:0 6px 15px rgba(0,0,0,0.1);
-    width:100%;max-width:600px;max-height:80vh;overflow-y:auto;
-}
-h1{text-align:center;margin-bottom:16px;font-size:1.6rem;}
-h2{font-size:1rem;margin-top:10px}
-input[type="text"],input[type="email"],input[type="number"],
-input[type="tel"],textarea{
-    width:100%;padding:10px;margin-top:5px;
-    border:1px solid #ccc;border-radius:6px;background:#fafafa;
-    font-size:0.95rem;
-}
-textarea{resize:none;height:80px}
-button{
-    background:#4CAF50;color:#fff;border:none;padding:12px;
-    border-radius:6px;cursor:pointer;width:100%;font-size:1.05rem;margin-top:20px;
-}
-button:hover{background:#249f60}
+} */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #e8f5e9, #ffffff);
+            /* display: flex;
+            flex-direction: column; */
+            margin: 0;
+        }
 
-/* Tablets and up */
-@media (min-width: 768px){
-    .main-wrapper{
-        padding:40px 16px;
-    }
-    form{
-        padding:24px;
-    }
-    h1{font-size:1.8rem;}
-}
+        .main-wrapper {
+            /* flex: 1; */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 16px 80px;
+        }
 
-/* Very small phones */
-@media (max-width: 480px){
-    form{
-        padding:16px;
-        max-height:none;
-        box-shadow:0 4px 10px rgba(0,0,0,0.08);
-    }
-    h1{font-size:1.4rem;}
-    h2{font-size:0.95rem;}
-    button{font-size:1rem;padding:10px;}
-}
-</style>
+        form {
+            background: #fff;
+            padding: 24px 20px 28px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 600px;
+            /* max-height: 80vh;
+            overflow-y: auto; */
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 1.6rem;
+        }
+
+        h2 {
+            font-size: 1rem;
+            margin-top: 10px
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        input[type="tel"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: #fafafa;
+            font-size: 0.95rem;
+        }
+
+        textarea {
+            resize: none;
+            height: 80px
+        }
+
+        button {
+            background: #4CAF50;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.05rem;
+            margin-top: 20px;
+            transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        button:hover {
+            background: #249f60;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgb(15, 118, 110, 0.3);
+        }
+
+        /* Tablets and up */
+        @media (min-width: 768px) {
+            .main-wrapper {
+                padding: 40px 16px;
+            }
+
+            form {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Very small phones */
+        @media (max-width: 480px) {
+            form {
+                padding: 16px;
+                max-height: none;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            }
+
+            h1 {
+                font-size: 1.4rem;
+            }
+
+            h2 {
+                font-size: 0.95rem;
+            }
+
+            button {
+                font-size: 1rem;
+                padding: 10px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<?php
-$pageTitle = 'Department Form';
-$showExport = false;
-include '../header.php';
-?>
+    <?php
+    $pageTitle = 'Department Form';
+    $showExport = false;
+    include '../header.php';
+    ?>
 
-<div class="main-wrapper">
-    <div>
-        <form action="send.php" method="POST">
-            <h1>Department Form</h1>
+    <div class="main-wrapper">
+        <div>
+            <form action="send.php" method="POST">
+                <h1>Department Form</h1>
 
-            <!-- Business Department ID stored in department_id -->
-            <h2>Department ID:
-                <input type="text" name="department_id" placeholder="Enter Department ID"
-                       maxlength="100" required>
-            </h2>
+                <!-- Business Department ID stored in department_id -->
+                <h2>Department ID:
+                    <input type="text" name="department_id" placeholder="Enter Department ID"
+                        maxlength="100" required>
+                </h2>
 
-            <h2>Department Name:
-                <input type="text" name="dname" placeholder="Enter Department" pattern="[A-Za-z\s]+"
-                       title="Only letters and spaces allowed" required>
-            </h2>
+                <h2>Department Name:
+                    <input type="text" name="dname" placeholder="Enter Department" pattern="[A-Za-z\s]+"
+                        title="Only letters and spaces allowed" required>
+                </h2>
 
-            <h2>Email:
-                <input type="email" name="email" placeholder="Enter Email" required>
-            </h2>
+                <h2>Email:
+                    <input type="email" name="email" placeholder="Enter Email" required>
+                </h2>
 
-            <h2>Contact Number:
-                <input type="tel" name="number" minlength="10" maxlength="13" placeholder="Enter Number" required>
-            </h2>
+                <h2>Contact Number:
+                    <input type="tel" name="number" minlength="10" maxlength="13" placeholder="Enter Number" required>
+                </h2>
 
-            <h2>Number of Employees:
-                <input type="number" name="nemployees" min="1" placeholder="Enter Total number of Employees" required>
-            </h2>
+                <h2>Number of Employees:
+                    <input type="number" name="nemployees" min="1" placeholder="Enter Total number of Employees" required>
+                </h2>
 
-            <h2>Department Responsibilities:
-                <input type="text" name="resp" placeholder="Enter Responsibilities" required>
-            </h2>
+                <h2>Department Responsibilities:
+                    <input type="text" name="resp" placeholder="Enter Responsibilities" required>
+                </h2>
 
-            <h2>Annual Budget:
-                <input type="text" name="budget" value="₹" placeholder="Enter Annual Budget" required>
-            </h2>
+                <h2>Annual Budget:
+                    <input type="text" name="budget" value="₹" placeholder="Enter Annual Budget" required>
+                </h2>
 
-            <h2>Department Status:
-                <label><input type="radio" name="status" value="Active" required> Active</label>
-                <label><input type="radio" name="status" value="Inactive" required> Inactive</label>
-            </h2>
+                <h2>Department Status:
+                    <label><input type="radio" name="status" value="Active" required> Active</label>
+                    <label><input type="radio" name="status" value="Inactive" required> Inactive</label>
+                </h2>
 
-            <h2>Description:
-                <textarea name="description" placeholder="Write Description"></textarea>
-            </h2>
+                <h2>Description:
+                    <textarea name="description" placeholder="Write Description"></textarea>
+                </h2>
 
-            <button type="submit">Submit</button>
-        </form>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
     </div>
-</div>
 
-<?php include '../footer.php'; ?>
+    <?php include '../footer.php'; ?>
 </body>
+
 </html>

@@ -29,21 +29,22 @@ $_SESSION['last_activity'] = time();
         margin: 0;
         padding: 0;
     }
-    html, body {
+    /* html, body {
         height: 100%;
-    }
+    } */
     body {
         font-family: Arial, sans-serif;
         background: linear-gradient(135deg, #e8f5e9, #ffffff);
-        display: flex;
-        flex-direction: column;
+        /* display: flex;
+        flex-direction: column; */
+        margin: 0;
     }
     .main-wrapper {
-        flex: 1;
+        /* flex: 1; */
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        padding: 40px 16px;
+        padding: 40px 16px 80px;
     }
     .event-form-card {
         background: #ffffff;
@@ -52,8 +53,8 @@ $_SESSION['last_activity'] = time();
         padding: 24px 20px 28px;
         width: 100%;
         max-width: 600px;
-        max-height: 80vh;
-        overflow-y: auto;
+        /* max-height: 80vh;
+        overflow-y: auto; */
     }
     .event-form-title {
         text-align: center;
