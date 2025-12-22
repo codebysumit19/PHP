@@ -3,12 +3,18 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+$currentPage = basename($_SERVER['PHP_SELF']);  // e.g. "link.php"
+
 $headerTitle = isset($pageTitle) && $pageTitle !== ''
     ? $pageTitle
     : 'PHP CRUD Dashboard';
 
 $userName    = $_SESSION['userName'] ?? 'User';
 $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
+
+// detect if header is included from subfolder (event/, employee/, department/, project/)
+$dirName = basename(__DIR__);
+$base = in_array($dirName, ['event','employee','department','project']) ? '../' : './';
 ?>
 <header style="
     display:flex;align-items:center;justify-content:space-between;
@@ -16,15 +22,16 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
     font-family:Arial, sans-serif;flex-wrap:wrap;row-gap:10px;
 ">
     <div style="display:flex;align-items:center;gap:12px;min-width:180px;">
-        <a href="../link.php" style="text-decoration:none;color:white;display:flex;align-items:center;gap:8px;">
+        <a href="<?php echo $base; ?>link.php"
+           style="text-decoration:none;color:white;display:flex;align-items:center;gap:8px;">
             <div style="
                 width:40px;height:40px;border-radius:50%;
-                background:#ffffff;display:flex;align-items:center;
+                display:flex;align-items:center;
                 justify-content:center;overflow:hidden;flex-shrink:0;
             ">
                 <img src="https://friconix.com/jpg/fi-snsuxx-php-logo.jpg"
                      alt="PHP Logo"
-                     style="width:70%;height:70%;object-fit:contain;display:block;">
+                     style="width:80%;height:80%;object-fit:contain;display:block;border-radius:50%">
             </div>
         </a>
         <h3 style="margin:0;font-size:17px;white-space:nowrap;">
@@ -34,22 +41,65 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
 
     <nav style="
         display:flex;flex-wrap:wrap;justify-content:center;
-        gap:10px 14px;font-size:13px;flex:1;min-width:220px;
+        gap:16px;font-size:13px;flex:1;min-width:220px;
         text-align:center;
     ">
-        <a href="../link.php"
-           style="color:white;text-decoration:none;padding:4px 8px;border-radius:4px;
+        <a href="<?php echo $base; ?>link.php"
+           class="nav-link <?php echo ($currentPage === 'link.php') ? 'active' : ''; ?>"
+           style="color:white;text-decoration:none;padding:4px 10px;border-radius:4px;
                   transition:background 0.15s,color 0.15s;">
             Home
         </a>
-        <span style="padding:4px 8px;border-radius:4px;">Services / Products</span>
-        <span style="padding:4px 8px;border-radius:4px;">Team</span>
-        <span style="padding:4px 8px;border-radius:4px;">Careers</span>
-        <span style="padding:4px 8px;border-radius:4px;">About</span>
-        <span style="padding:4px 8px;border-radius:4px;text-align:center;">
+
+        <!-- Event dropdown -->
+        <div class="nav-dropdown">
+            <button class="nav-dropbtn" style="color:white;text-decoration:none;padding:4px 10px;border-radius:4px;
+                  transition:background 0.15s,color 0.15s;">Event</button>
+            <div class="nav-dropdown-content">
+                <a href="<?php echo $base; ?>event/form.php">Event Form</a>
+                <a href="<?php echo $base; ?>event/get.php">Event Data</a>
+            </div>
+        </div>
+
+        <!-- Employees dropdown -->
+        <div class="nav-dropdown">
+            <button class="nav-dropbtn">Employees</button>
+            <div class="nav-dropdown-content">
+                <a href="<?php echo $base; ?>employee/form.php">Employees Form</a>
+                <a href="<?php echo $base; ?>employee/get.php">Employees Data</a>
+            </div>
+        </div>
+
+        <!-- Department dropdown -->
+        <div class="nav-dropdown">
+            <button class="nav-dropbtn">Department</button>
+            <div class="nav-dropdown-content">
+                <a href="<?php echo $base; ?>department/form.php">Departments Form</a>
+                <a href="<?php echo $base; ?>department/get.php">Departments Data</a>
+            </div>
+        </div>
+
+        <!-- Project dropdown -->
+        <div class="nav-dropdown">
+            <button class="nav-dropbtn">Project</button>
+            <div class="nav-dropdown-content">
+                <a href="<?php echo $base; ?>project/form.php">Project Form</a>
+                <a href="<?php echo $base; ?>project/get.php">Project Data</a>
+            </div>
+        </div>
+
+        <a href="<?php echo $base; ?>privacy.php"
+           class="nav-link"
+           style="color:white;text-decoration:none;padding:4px 10px;border-radius:4px;
+                  transition:background 0.15s,color 0.15s;">
             Privacy Policy &amp; Terms
-        </span>
-        <span style="padding:4px 8px;border-radius:4px;">Contact Us</span>
+        </a>
+        <a href="<?php echo $base; ?>contact.php"
+           class="nav-link"
+           style="color:white;text-decoration:none;padding:4px 10px;border-radius:4px;
+                  transition:background 0.15s,color 0.15s;">
+            Contact Us
+        </a>
     </nav>
 
     <div style="display:flex;align-items:center;gap:10px;min-width:150px;justify-content:flex-end;position:relative;">
@@ -61,7 +111,6 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
             </form>
         <?php endif; ?>
 
-        <!-- Avatar trigger -->
         <div id="user-avatar"
              style="width:34px;height:34px;border-radius:50%;
                     background:#FFFFFF;display:flex;align-items:center;
@@ -71,7 +120,6 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
             <?php echo htmlspecialchars($userInitial, ENT_QUOTES, 'UTF-8'); ?>
         </div>
 
-        <!-- Dropdown profile card -->
         <div id="user-menu">
             <div class="user-card-header">
                 <div class="user-card-avatar">
@@ -87,8 +135,7 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
                 </div>
             </div>
             <hr class="user-card-divider">
-            <!-- Logout is now a link, not a form button -->
-            <a href="./logout.php" id="logout-link"
+            <a href="<?php echo $base; ?>logout.php" id="logout-link"
                class="btn-primary btn-small user-card-logout"
                style="display:block;text-align:center;">
                 Logout
@@ -96,7 +143,6 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
         </div>
     </div>
 
-    <!-- Logout confirmation modal -->
     <div class="logout-overlay" id="logout-overlay">
         <div class="logout-modal">
             <button type="button" class="logout-close" id="logout-close">&times;</button>
@@ -138,28 +184,69 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
             color:#787E7A;
         }
 
-        /* Primary header buttons: Export + Logout */
+        header nav a.active{
+            background:#9ac4b6;
+            border-radius:4px;
+        }
+
+        .nav-dropdown{
+            position:relative;
+            display:inline-block;
+        }
+        .nav-dropbtn{
+            background:transparent;
+            border:none;
+            color:#ffffff;
+            padding:4px 8px;
+            border-radius:4px;
+            font:inherit;
+            cursor:pointer;
+        }
+        .nav-dropdown-content{
+            display:none;
+            position:absolute;
+            background:#ffffff;
+            min-width:140px;
+            box-shadow:0 4px 10px rgba(0,0,0,0.15);
+            border-radius:6px;
+            z-index:999;
+            overflow:hidden;
+        }
+        .nav-dropdown-content a{
+            color:#111827;
+            padding:8px 10px;
+            text-decoration:none;
+            display:block;
+            font-size:13px;
+            text-align:left;
+        }
+        .nav-dropdown-content a:hover{
+            background:#e5e7eb;
+        }
+        .nav-dropdown:hover .nav-dropdown-content{
+            display:block;
+        }
+        .nav-dropdown:hover .nav-dropbtn{
+            background:#3A3D3B;
+            color:#f9fafb;
+        }
+
         .btn-primary {
             display:inline-flex;
             align-items:center;
             justify-content:center;
             gap:6px;
-
             padding:8px 16px;
             border-radius:999px;
-
             border:1px solid #38bdf8;
             background:linear-gradient(135deg,#0f172a,#1f2937);
             color:#e5e7eb;
-
             font-size:13px;
             font-weight:600;
             letter-spacing:0.02em;
             text-transform:uppercase;
-
             cursor:pointer;
             text-decoration:none;
-
             box-shadow:0 4px 10px rgba(15,23,42,0.35);
             transition:
                 background 0.22s ease,
@@ -168,12 +255,10 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
                 box-shadow 0.18s ease,
                 transform 0.18s ease;
         }
-
         .btn-small {
             padding:6px 14px;
             font-size:12px;
         }
-
         .btn-primary:hover {
             background:linear-gradient(135deg,#1d4ed8,#3b82f6);
             color:#f9fafb;
@@ -181,18 +266,15 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
             box-shadow:0 8px 18px rgba(30,64,175,0.55);
             transform:translateY(-1px);
         }
-
         .btn-primary:active {
             transform:translateY(0);
             box-shadow:0 3px 8px rgba(15,23,42,0.45);
         }
-
         .btn-primary:focus-visible {
             outline:2px solid #38bdf8;
             outline-offset:2px;
         }
 
-        /* User dropdown as a small profile card */
         #user-menu{
             position:absolute;
             top:48px;
@@ -207,14 +289,12 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
             z-index:999;
             border:1px solid rgba(148,163,184,0.35);
         }
-
         .user-card-header{
             display:flex;
             align-items:center;
             gap:10px;
             padding:4px 2px;
         }
-
         .user-card-avatar{
             width:34px;
             height:34px;
@@ -228,41 +308,34 @@ $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
             color:#ecfdf5;
             box-shadow:0 4px 10px rgba(22,163,74,0.6);
         }
-
         .user-card-info{
             display:flex;
             flex-direction:column;
         }
-
         .user-card-name{
             font-size:14px;
             font-weight:600;
             color:#f9fafb;
         }
-
         .user-card-subtitle{
             font-size:11px;
             color:#9ca3af;
         }
-
         .user-card-divider{
             border:0;
             height:1px;
             margin:8px 0 10px;
             background:linear-gradient(to right,transparent,#4b5563,transparent);
         }
-
         .user-card-logout{
             width:100%;
             justify-content:center;
         }
-
         .user-card-logout:hover{
             background:linear-gradient(135deg,#b91c1c,#ef4444);
             border-color:#fecaca;
         }
 
-        /* Logout confirmation modal */
         .logout-overlay{
             position:fixed;
             inset:0;
@@ -375,7 +448,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (overlay) overlay.style.display = 'none';
     }
 
-    // open confirmation when clicking Logout in menu
     if (logoutLn && overlay) {
         logoutLn.addEventListener('click', function (e) {
             e.preventDefault();
@@ -383,11 +455,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Cancel / X close actions
     if (btnNo)    btnNo.addEventListener('click', hideOverlay);
     if (btnClose) btnClose.addEventListener('click', hideOverlay);
 
-    // Confirm logout -> redirect to logout.php
     if (btnOk && logoutLn) {
         btnOk.addEventListener('click', function () {
             hideOverlay();

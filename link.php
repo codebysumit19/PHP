@@ -53,11 +53,11 @@ $userName = $_SESSION['userName'] ?? 'User';
     }
 
     .dashboard-card{
-        background:rgba(249,250,251,0.96);
-        backdrop-filter:blur(8px);
+        /* background:rgba(249,250,251,0.96); */
+        /* backdrop-filter:blur(8px); */
         border-radius:18px;
-        box-shadow:0 18px 45px rgba(15,23,42,0.55),
-                   0 0 0 1px rgba(148,163,184,0.45);
+        /* box-shadow:0 18px 45px rgba(15,23,42,0.55),
+                   0 0 0 1px rgba(148,163,184,0.45); */
         padding:20px 18px 22px;
         width:100%;
         max-width:980px;
@@ -66,12 +66,13 @@ $userName = $_SESSION['userName'] ?? 'User';
     }
 
     .dashboard-title{
-        font-size:1.8rem;
-        font-weight:700;
-        text-align:left;
-        margin-bottom:4px;
-        color:#020617;
-    }
+    font-size:1.8rem;
+    font-weight:700;
+    text-align:center;   /* was left */
+    margin-bottom:4px;
+    color:#020617;
+}
+
     .dashboard-subtitle{
         text-align:left;
         color:#6b7280;
@@ -114,12 +115,19 @@ $userName = $_SESSION['userName'] ?? 'User';
     }
 
     @media (max-width:640px){
-        .main-wrapper{padding:18px 10px 22px;}
-        .dashboard-card{padding:18px 14px 20px;border-radius:14px;}
-        .dashboard-title{text-align:center;font-size:1.5rem;}
-        .dashboard-subtitle{text-align:center;margin-bottom:16px;}
-        .dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+    .main-wrapper{padding:18px 10px 22px;}
+    .dashboard-card{padding:18px 14px 20px;border-radius:14px;}
+    .dashboard-title{
+        text-align:center;      /* add this */
+        font-size:1.5rem;
     }
+    .dashboard-subtitle{
+        text-align:center;      /* add this if you want subtitle centered too */
+        margin-bottom:16px;
+    }
+    .dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+}
+
     @media (max-width:420px){
         .dashboard-grid{grid-template-columns:1fr;}
     }
@@ -170,7 +178,7 @@ $showExport = false;
 include 'header.php';
 ?>
 
-<div class="main-wrapper">
+<!-- <div class="main-wrapper">
     <div class="dashboard-card">
         <h1 class="dashboard-title">
             Welcome, <?php echo htmlspecialchars($userName, ENT_QUOTES, 'UTF-8'); ?>
@@ -205,11 +213,11 @@ include 'header.php';
             </div>
         </div>
     </div>
-</div>
+</div> -->
 
 <?php include 'footer.php'; ?>
 
-<script>
+<!-- <script>
 document.addEventListener('DOMContentLoaded', function () {
     var links  = document.querySelectorAll('.nav-link');
     var loader = document.getElementById('page-loader');
@@ -231,6 +239,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
-</script>
+</script> -->
 </body>
 </html>
