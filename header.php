@@ -2,7 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
+//sumit
 $currentPage = basename($_SERVER['PHP_SELF']);  // e.g. "link.php"
 
 $headerTitle = isset($pageTitle) && $pageTitle !== ''
