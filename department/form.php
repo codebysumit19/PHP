@@ -24,74 +24,102 @@ $_SESSION['last_activity'] = time();
     <title>Department Form</title>
     <link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
 
-    <style>
+     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-
-        /* html, body{
-    height:100%;
-} */
+        
         body {
             font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #e8f5e9, #ffffff);
-            /* display: flex;
-            flex-direction: column; */
             margin: 0;
+            min-height: 100vh;
         }
-
+        
         .main-wrapper {
-            /* flex: 1; */
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding: 40px 16px 80px;
+            padding: 24px 16px 80px;
         }
-
-        form {
-            background: #fff;
-            padding: 24px 20px 28px;
+        
+        .main-wrapper > div {
+            background: #ffffff;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            width: 600px;
-            /* max-height: 80vh;
-            overflow-y: auto; */
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 16px;
-            font-size: 1.6rem;
-        }
-
-        h2 {
-            font-size: 1rem;
-            margin-top: 10px
-        }
-
-        input[type="text"],
-        input[type="email"],
-        input[type="number"],
-        input[type="tel"],
-        textarea {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            padding: 28px 24px;
             width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
+            max-width: 600px;
+        }
+        
+        form h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #111827;
+        }
+        
+        form h2 {
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+            color: #111827;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        form h2 input[type="text"],
+        form h2 input[type="email"],
+        form h2 input[type="tel"],
+        form h2 input[type="number"],
+        form h2 textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
             border-radius: 6px;
-            background: #fafafa;
+            background: #f9fafb;
+            font-size: 0.95rem;
+            font-family: Arial, sans-serif;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        
+        form h2 input[type="text"]:focus,
+        form h2 input[type="email"]:focus,
+        form h2 input[type="tel"]:focus,
+        form h2 input[type="number"]:focus,
+        form h2 textarea:focus {
+            outline: none;
+            border-color: #68A691;
+            background: #ffffff;
+        }
+        
+        form h2 textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        form h2 label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 400;
+            cursor: pointer;
+            margin-right: 20px;
             font-size: 0.95rem;
         }
-
-        textarea {
-            resize: none;
-            height: 80px
+        
+        form h2 input[type="radio"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
         }
-
-        button {
-            background: #4CAF50;
+        
+        button[type="submit"] {
+            background: #68A691;
             color: #fff;
             border: none;
             padding: 12px;
@@ -99,48 +127,64 @@ $_SESSION['last_activity'] = time();
             cursor: pointer;
             width: 100%;
             font-size: 1.05rem;
-            margin-top: 20px;
+            font-weight: 600;
+            margin-top: 24px;
             transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
         }
-
-        button:hover {
-            background: #249f60;
+        
+        button[type="submit"]:hover {
+            background: #4a8970;
             transform: translateY(-1px);
-            box-shadow: 0 6px 14px rgb(15, 118, 110, 0.3);
+            box-shadow: 0 6px 14px rgba(104, 166, 145, 0.3);
         }
-
-        /* Tablets and up */
-        @media (min-width: 768px) {
+        
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 80px;
+            }
+            
             .main-wrapper {
-                padding: 40px 16px;
+                padding: 20px 12px 60px;
             }
-
-            form {
-                padding: 24px;
+            
+            .main-wrapper > div {
+                padding: 20px 16px;
             }
-
-            h1 {
-                font-size: 1.8rem;
+            
+            form h1 {
+                font-size: 1.5rem;
             }
         }
-
-        /* Very small phones */
+        
         @media (max-width: 480px) {
-            form {
-                padding: 16px;
-                max-height: none;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            body {
+                padding-top: 100px;  /* more space for wrapped header on mobile */
             }
-
-            h1 {
-                font-size: 1.4rem;
+            
+            .main-wrapper {
+                padding: 16px 12px 50px;
             }
-
-            h2 {
-                font-size: 0.95rem;
+            
+            .main-wrapper > div {
+                padding: 16px 12px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.08);
             }
-
-            button {
+            
+            form h1 {
+                font-size: 1.3rem;
+                margin-bottom: 16px;
+            }
+            
+            form h2 {
+                font-size: 0.9rem;
+            }
+            
+            button[type="submit"] {
                 font-size: 1rem;
                 padding: 10px;
             }

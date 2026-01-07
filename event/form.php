@@ -22,80 +22,99 @@ $_SESSION['last_activity'] = time();
 <meta charset="UTF-8">
 <title>Event Form</title>
 <link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
-
- <style>
+<style>
     * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
     }
-    /* html, body {
-        height: 100%;
-    } */
+    
     body {
         font-family: Arial, sans-serif;
         background: linear-gradient(135deg, #e8f5e9, #ffffff);
-        /* display: flex;
-        flex-direction: column; */
         margin: 0;
+        min-height: 100vh;
     }
+    
     .main-wrapper {
-        /* flex: 1; */
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        padding: 40px 16px 80px;
+        padding: 24px 16px 80px;
     }
+    
     .event-form-card {
         background: #ffffff;
         border-radius: 12px;
         box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        padding: 24px 20px 28px;
+        padding: 28px 24px;
         width: 100%;
         max-width: 600px;
-        /* max-height: 80vh;
-        overflow-y: auto; */
     }
+    
     .event-form-title {
         text-align: center;
-        margin-bottom: 16px;
-        font-size: 1.7rem;
+        margin-bottom: 20px;
+        font-size: 1.75rem;
         font-weight: 700;
         color: #111827;
     }
+    
     .field-group {
-        margin-top: 12px;
+        margin-bottom: 16px;
     }
+    
     .field-group label {
         display: block;
-        font-size: 0.98rem;
-        margin-bottom: 4px;
+        font-size: 0.95rem;
+        margin-bottom: 6px;
         color: #111827;
         font-weight: 600;
     }
+    
     .field-group input[type="text"],
     .field-group input[type="date"],
     .field-group input[type="time"] {
         width: 100%;
-        padding: 10px;
+        padding: 10px 12px;
         border: 1px solid #d1d5db;
         border-radius: 6px;
         background: #f9fafb;
         font-size: 0.95rem;
+        transition: border-color 0.2s, background 0.2s;
     }
+    
+    .field-group input[type="text"]:focus,
+    .field-group input[type="date"]:focus,
+    .field-group input[type="time"]:focus {
+        outline: none;
+        border-color: #68A691;
+        background: #ffffff;
+    }
+    
     .radio-group {
         display: flex;
         align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-top: 4px;
+        gap: 20px;
+        margin-top: 8px;
     }
+    
     .radio-group label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         font-weight: 400;
-        margin-right: 8px;
+        cursor: pointer;
     }
-    button {
-        background: #4CAF50;
+    
+    .radio-group input[type="radio"] {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+    }
+    
+    button[type="submit"] {
+        background: #68A691;
         color: #fff;
         border: none;
         padding: 12px;
@@ -103,38 +122,60 @@ $_SESSION['last_activity'] = time();
         cursor: pointer;
         width: 100%;
         font-size: 1.05rem;
-        margin-top: 20px;
+        font-weight: 600;
+        margin-top: 24px;
         transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
     }
-    button:hover {
-        background: #249f60;
+    
+    button[type="submit"]:hover {
+        background: #4a8970;
         transform: translateY(-1px);
-        box-shadow: 0 6px 14px rgba(15, 118, 110, 0.3);
+        box-shadow: 0 6px 14px rgba(104, 166, 145, 0.3);
     }
-    @media (min-width: 768px) {
+    
+    button[type="submit"]:active {
+        transform: translateY(0);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        body {
+            padding-top: 80px;
+        }
+        
         .main-wrapper {
-            padding: 40px 16px;
+            padding: 20px 12px 60px;
         }
+        
         .event-form-card {
-            padding: 24px;
+            padding: 20px 16px;
         }
+        
         .event-form-title {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
         }
     }
+    
     @media (max-width: 480px) {
-        .main-wrapper {
-            padding: 20px 12px;
+        body {
+            padding-top: 100px;  /* more space for wrapped header on mobile */
         }
+        
+        .main-wrapper {
+            padding: 16px 12px 50px;
+        }
+        
         .event-form-card {
-            padding: 16px;
-            max-height: none;
+            padding: 16px 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.08);
         }
+        
         .event-form-title {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
+            margin-bottom: 16px;
         }
-        button {
+        
+        button[type="submit"] {
             font-size: 1rem;
             padding: 10px;
         }
