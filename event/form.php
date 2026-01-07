@@ -23,7 +23,7 @@ $_SESSION['last_activity'] = time();
 <title>Event Form</title>
 <link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
 
-<style>
+<!-- <style>
     * {
         box-sizing: border-box;
         margin: 0;
@@ -139,7 +139,7 @@ $_SESSION['last_activity'] = time();
             padding: 10px;
         }
     }
-</style>
+</style> -->
 </head>
 <body>
 <?php
