@@ -15,6 +15,12 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) >
 }
 $_SESSION['last_activity'] = time();
 
+// Export button
+if (isset($_POST['export'])) {
+    header('Location: export.php');
+    exit;
+}
+
 require_once '../db.php';
 
 // ---------------------------
@@ -35,9 +41,8 @@ if (isset($_GET['id'])) {
 // ---------------------------
 // UPDATE EVENT
 // ---------------------------
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POST['search'])) {
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POST['export'])) {
     $id = $_POST['id'];
-
     $department_id = htmlspecialchars(trim($_POST['department_id']), ENT_QUOTES, 'UTF-8');
     $name = htmlspecialchars(trim($_POST['name']), ENT_QUOTES, 'UTF-8');
     $address = htmlspecialchars(trim($_POST['address']), ENT_QUOTES, 'UTF-8');
@@ -52,42 +57,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POS
          SET department_id=?, name=?, address=?, date=?, stime=?, etime=?, type=?, happend=?
          WHERE id=?"
     );
-    $stmt->bind_param(
-        "sssssssss",
-        $department_id,
-        $name,
-        $address,
-        $date,
-        $stime,
-        $etime,
-        $type,
-        $happend,
-        $id
-    );
+    $stmt->bind_param("sssssssss", $department_id, $name, $address, $date, $stime, $etime, $type, $happend, $id);
     $stmt->execute();
     $stmt->close();
-
     header("Location: get.php");
     exit;
 }
 
-// ---------------------------
-// SEARCH / FILTER
-// ---------------------------
-$search = trim($_GET['search'] ?? '');
-
-if ($search !== '') {
-    $like = '%' . $search . '%';
-    $stmt = $conn->prepare(
-        "SELECT * FROM events
-         WHERE name LIKE ? OR type LIKE ? OR date LIKE ? OR department_id LIKE ?"
-    );
-    $stmt->bind_param("ssss", $like, $like, $like, $like);
-    $stmt->execute();
-    $result = $stmt->get_result();
-} else {
-    $result = $conn->query("SELECT * FROM events");
-}
+// Initial load - get all events
+$result = $conn->query("SELECT * FROM events");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -123,10 +101,25 @@ if ($search !== '') {
             overflow-x: auto;
         }
 
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .table-header h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            color: #111827;
+        }
+
         .table-container table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 850px;
+            min-width: 900px;
             background: #fff;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         }
@@ -147,6 +140,11 @@ if ($search !== '') {
 
         .table-container td {
             background: #f9fafb;
+            transition: background 0.2s;
+        }
+
+        .table-container tbody tr:hover td {
+            background: #e0f2f1;
         }
 
         .table-container td a {
@@ -176,11 +174,11 @@ if ($search !== '') {
         }
 
         .table-container i.fas.fa-plus {
-            color: #1d4ed8;
+            color: #68A691;
         }
 
         .table-container i.fas.fa-plus:hover {
-            color: #3b82f6;
+            color: #4a8970;
         }
 
         /* Delete Modal */
@@ -225,8 +223,8 @@ if ($search !== '') {
         }
 
         .delete-close:hover {
-            background: #ef4444;
-            color: #fff;
+            background: #e5e7eb;
+            color: #111827;
         }
 
         .delete-modal-icon {
@@ -257,6 +255,7 @@ if ($search !== '') {
             text-align: center;
             color: #6b7280;
             margin-bottom: 20px;
+            line-height: 1.5;
         }
 
         .delete-actions {
@@ -270,6 +269,7 @@ if ($search !== '') {
             padding: 10px;
             border-radius: 6px;
             font-weight: 600;
+            font-size: 14px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
@@ -277,6 +277,7 @@ if ($search !== '') {
         .btn-delete-cancel {
             background: #fff;
             border: 1px solid #d1d5db;
+            color: #374151;
         }
 
         .btn-delete-cancel:hover {
@@ -291,6 +292,48 @@ if ($search !== '') {
 
         .btn-delete-confirm:hover {
             background: #b91c1c;
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .search-box {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+            min-width: 250px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #68A691;
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: #6b7280;
+            cursor: pointer;
+            display: none;
+            user-select: none;
+        }
+
+        .clear-search:hover {
+            color: #111827;
+        }
+
+        .highlight {
+            background-color: #ffe58f;
+        }
+
+        input[type="search"]::-webkit-search-cancel-button {
+            display: none;
         }
 
         @keyframes modalSlideIn {
@@ -315,7 +358,21 @@ if ($search !== '') {
             }
         }
 
+        @media (max-width:768px) {
+            .table-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+        }
+
         @media (max-width:480px) {
+            body {
+                padding-top: 100px;
+            }
 
             .table-container th,
             .table-container td {
@@ -326,6 +383,10 @@ if ($search !== '') {
             .delete-modal {
                 min-width: 280px;
                 margin: 0 16px;
+            }
+
+            .table-header h1 {
+                font-size: 1.4rem;
             }
         }
     </style>
@@ -339,50 +400,81 @@ if ($search !== '') {
     ?>
 
     <div class="table-container">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:12px;">
-            <h1 style="margin:0;">Events Data</h1>
-            <form method="get">
-                <input type="text" name="search" placeholder="Dept ID/Event Name" value="<?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?>" style="padding:6px 8px; border-radius:4px; border:1px solid #ccc;">
-                <button type="submit" style="padding:6px 10px; border-radius:4px; border:1px solid #111827; background:#111827; color:#f9fafb; cursor:pointer;">Search</button>
-            </form>
+        <div class="table-header">
+            <h1>Project Data</h1>
+            <div class="search-wrapper">
+                <input type="search" id="liveSearch" class="search-box" placeholder="Search projects..." autocomplete="off" />
+                <span id="clearSearch" class="clear-search">&times;</span>
+            </div>
         </div>
 
         <table>
-            <tr>
-                <th>Name</th>
-                <th>Department ID</th>
-                <th>Address</th>
-                <th>Date</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Type</th>
-                <th>Happened</th>
-                <th>Update</th>
-                <th>Delete</th>
-                <th>Add New</th>
-            </tr>
-            <?php
-            if ($result && $result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
-                    echo "<tr>";
-                    echo "<td>" . htmlspecialchars($row['name']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['department_id']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['address']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['date']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['stime']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['etime']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['type']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['happend']) . "</td>";
-                    echo "<td><a href='update.php?id=" . rawurlencode($row['id']) . "'><i class='fas fa-edit'></i></a></td>";
-                    echo "<td><i class='fas fa-trash' onclick='showDeleteModal(\"" . addslashes($row['id']) . "\", \"" . addslashes($row['name']) . "\")'></i></td>";
-                    echo "<td><a href='form.php'><i class='fas fa-plus'></i></a></td>";
-                    echo "</tr>";
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Department ID</th>
+                    <th>Address</th>
+                    <th>Date</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Type</th>
+                    <th>Happened</th>
+                    <th>Update</th>
+                    <th>Delete</th>
+                    <th>Add</th>
+                </tr>
+            </thead>
+            <tbody id="tableData">
+                <?php
+
+
+
+                if ($result && $result->num_rows > 0) {
+                    while ($row = $result->fetch_assoc()) {
+
+                        $id   = htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8');
+                        $name = htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8');
+
+                        echo "<tr>";
+                        echo "<td>{$name}</td>";
+                        echo "<td>" . htmlspecialchars($row['department_id']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['address']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['date']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['stime']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['etime']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['type']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['happend']) . "</td>";
+
+                        echo "<td>
+                <a href='update.php?id={$id}'>
+                    <i class='fas fa-edit'></i>
+                </a>
+              </td>";
+
+                        echo "<td>
+                <i class='fas fa-trash'
+                   onclick='showDeleteModal(\"{$id}\", \"{$name}\")'>
+                </i>
+              </td>";
+
+                        echo "<td>
+                <a href='form.php'>
+                    <i class='fas fa-plus'></i>
+                </a>
+              </td>";
+
+                        echo "</tr>";
+                    }
                 }
-            } else {
-                echo "<tr><td colspan='10'>No data found</td><td><a href='form.php'><i class='fas fa-plus'></i></a></td></tr>";
-            }
-            $conn->close();
-            ?>
+
+                ?>
+                <tr id="no-data-row" style="display:none;">
+                    <td colspan="11" style="text-align:center; padding: 15px 0;">No data found</td>
+                </tr>
+
+            </tbody>
+
+
         </table>
     </div>
 
@@ -405,7 +497,8 @@ if ($search !== '') {
 
         function showDeleteModal(id, name) {
             deleteId = id;
-            document.getElementById('delete-event-name').textContent = `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+            document.getElementById('delete-event-name').textContent =
+                `Are you sure you want to delete "${name}"? This action cannot be undone.`;
             document.getElementById('delete-overlay').style.display = 'flex';
         }
 
@@ -413,15 +506,91 @@ if ($search !== '') {
             document.getElementById('delete-overlay').style.display = 'none';
             deleteId = null;
         }
+
         document.getElementById('delete-close').onclick = hideDeleteModal;
         document.getElementById('delete-cancel').onclick = hideDeleteModal;
+
         document.getElementById('delete-confirm').onclick = function() {
             if (deleteId) {
                 window.location.href = "?id=" + encodeURIComponent(deleteId);
             }
         };
-    </script>
 
+        // Close modal on outside click
+        document.getElementById('delete-overlay').addEventListener('click', function(e) {
+            if (e.target === this) hideDeleteModal();
+        });
+
+        // Close modal on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') hideDeleteModal();
+        });
+
+        // =============================
+        // LIVE SEARCH (AJAX)
+        // =============================
+        const searchInput = document.getElementById('liveSearch');
+        const tableData = document.getElementById('tableData');
+        const clearBtn = document.getElementById('clearSearch');
+        const noDataRow = document.getElementById('no-data-row');
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function resetTable() {
+            const rows = tableData.getElementsByTagName('tr');
+            for (let i = 0; i < rows.length; i++) {
+                rows[i].style.display = '';
+                const cells = rows[i].getElementsByTagName('td');
+                for (let c = 0; c < cells.length - 3; c++) { // only data columns
+                    cells[c].innerHTML = cells[c].textContent;
+                }
+            }
+            noDataRow.style.display = 'none';
+        }
+
+        searchInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            clearBtn.style.display = value ? 'block' : 'none';
+
+            if (!value) {
+                resetTable();
+                return;
+            }
+
+            const rows = tableData.getElementsByTagName('tr');
+            let visibleCount = 0;
+
+            for (let i = 0; i < rows.length; i++) {
+                if (rows[i] === noDataRow) continue;
+                const cells = rows[i].getElementsByTagName('td');
+                let rowMatches = false;
+
+                for (let c = 0; c < cells.length - 3; c++) { // only data columns
+                    const cellText = cells[c].textContent;
+                    const regex = new RegExp(`(${escapeRegExp(value)})`, 'gi');
+                    const highlighted = cellText.replace(regex, '<span class="highlight">$1</span>');
+                    cells[c].innerHTML = highlighted;
+
+                    if (cellText.toLowerCase().includes(value.toLowerCase())) rowMatches = true;
+                }
+
+                rows[i].style.display = rowMatches ? '' : 'none';
+                if (rowMatches) visibleCount++;
+            }
+
+            noDataRow.style.display = visibleCount === 0 ? '' : 'none';
+        });
+
+        // Clear button
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            resetTable();
+            searchInput.focus();
+        });
+    </script>
     <?php include '../footer.php'; ?>
 </body>
 

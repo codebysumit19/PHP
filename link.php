@@ -24,161 +24,202 @@ $userName = $_SESSION['userName'] ?? 'User';
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="fi-snsuxx-php-logo.jpg">
     <title>Dashboard</title>
     <style>
-    *{box-sizing:border-box;margin:0;padding:0;}
-    html, body{height:100%;}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    body{
-        font-family:Arial,sans-serif;
-        color:#111827;
-        display:flex;
-        flex-direction:column;
-        overflow-y:scroll; /* always show vertical scrollbar */
-        background:
-           linear-gradient(135deg, rgba(15,23,42,0.80), rgba(15,118,110,0.75)),
-           url("https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=1600") center/cover fixed no-repeat;
-    }
+        html,
+        body {
+            height: 100%;
+        }
 
-    .main-wrapper{
-        flex:1;
-        display:flex;
-        justify-content:center;
-        align-items:stretch;
-        padding:24px 12px 28px;
-    }
+        body {
+            font-family: Arial, sans-serif;
+            color: #111827;
+            display: flex;
+            flex-direction: column;
+            overflow-y: scroll;
+            /* always show vertical scrollbar */
+            background:
+                linear-gradient(135deg, rgba(15, 23, 42, 0.80), rgba(15, 118, 110, 0.75)),
+                url("https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=1600") center/cover fixed no-repeat;
+        }
 
-    .dashboard-card{
-        /* background:rgba(249,250,251,0.96); */
-        /* backdrop-filter:blur(8px); */
-        border-radius:18px;
-        /* box-shadow:0 18px 45px rgba(15,23,42,0.55),
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            padding: 24px 12px 28px;
+        }
+
+        .dashboard-card {
+            /* background:rgba(249,250,251,0.96); */
+            /* backdrop-filter:blur(8px); */
+            border-radius: 18px;
+            /* box-shadow:0 18px 45px rgba(15,23,42,0.55),
                    0 0 0 1px rgba(148,163,184,0.45); */
-        padding:20px 18px 22px;
-        width:100%;
-        max-width:980px;
-        display:flex;
-        flex-direction:column;
-    }
+            padding: 20px 18px 22px;
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            flex-direction: column;
+        }
 
-    .dashboard-title{
-    font-size:1.8rem;
-    font-weight:700;
-    text-align:center;   /* was left */
-    margin-bottom:4px;
-    color:#020617;
-}
+        .dashboard-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            /* was left */
+            margin-bottom: 4px;
+            color: #020617;
+        }
 
-    .dashboard-subtitle{
-        text-align:left;
-        color:#6b7280;
-        margin-bottom:18px;
-        font-size:0.95rem;
-    }
+        .dashboard-subtitle {
+            text-align: left;
+            color: #6b7280;
+            margin-bottom: 18px;
+            font-size: 0.95rem;
+        }
 
-    .dashboard-grid{
-        display:grid;
-        grid-template-columns:repeat(4,minmax(0,1fr));
-        gap:10px;
-        width:100%;
-    }
-    .dashboard-item{
-        background:#111827;
-        color:#e5e7eb;
-        border-radius:12px;
-        padding:10px 8px;
-        text-align:center;
-        box-shadow:0 6px 16px rgba(15,23,42,0.55);
-        transition:transform 0.18s ease,
-                   box-shadow 0.18s ease,
-                   background 0.2s ease;
-        cursor:pointer;
-    }
-    .dashboard-item a{
-        display:block;
-        text-decoration:none;
-        color:inherit;
-        font-weight:600;
-        font-size:0.9rem;
-        padding:6px 4px;
-        cursor:pointer;
-    }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            width: 100%;
+        }
 
-    .dashboard-item:hover{
-        transform:translateY(-2px);
-        box-shadow:0 10px 22px rgba(15,23,42,0.75);
-        background:#1d4ed8;
-    }
+        .dashboard-item {
+            background: #111827;
+            color: #e5e7eb;
+            border-radius: 12px;
+            padding: 10px 8px;
+            text-align: center;
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.55);
+            transition: transform 0.18s ease,
+                box-shadow 0.18s ease,
+                background 0.2s ease;
+            cursor: pointer;
+        }
 
-    @media (max-width:640px){
-    .main-wrapper{padding:18px 10px 22px;}
-    .dashboard-card{padding:18px 14px 20px;border-radius:14px;}
-    .dashboard-title{
-        text-align:center;      /* add this */
-        font-size:1.5rem;
-    }
-    .dashboard-subtitle{
-        text-align:center;      /* add this if you want subtitle centered too */
-        margin-bottom:16px;
-    }
-    .dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
-}
+        .dashboard-item a {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 6px 4px;
+            cursor: pointer;
+        }
 
-    @media (max-width:420px){
-        .dashboard-grid{grid-template-columns:1fr;}
-    }
-    @media (min-width:1024px){
-        .dashboard-title{font-size:2rem;}
-        .dashboard-card{padding:24px 22px 26px;}
-    }
+        .dashboard-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.75);
+            background: #1d4ed8;
+        }
 
-    /* Loading overlay */
-    #page-loader{
-        position:fixed;
-        inset:0;
-        background:rgba(15,23,42,0.65);
-        display:none;
-        align-items:center;
-        justify-content:center;
-        z-index:9999;
-    }
-    .loader-spinner{
-        width:52px;
-        height:52px;
-        border-radius:50%;
-        border:4px solid rgba(148,163,184,0.4);
-        border-top-color:#38bdf8;
-        animation:spin 0.8s linear infinite;
-    }
-    .loader-text{
-        margin-top:10px;
-        font-size:13px;
-        color:#e5e7eb;
-    }
-    @keyframes spin{
-        to{transform:rotate(360deg);}
-    }
+        @media (max-width:640px) {
+            .main-wrapper {
+                padding: 18px 10px 22px;
+            }
+
+            .dashboard-card {
+                padding: 18px 14px 20px;
+                border-radius: 14px;
+            }
+
+            .dashboard-title {
+                text-align: center;
+                /* add this */
+                font-size: 1.5rem;
+            }
+
+            .dashboard-subtitle {
+                text-align: center;
+                /* add this if you want subtitle centered too */
+                margin-bottom: 16px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+        }
+
+        @media (max-width:420px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width:1024px) {
+            .dashboard-title {
+                font-size: 2rem;
+            }
+
+            .dashboard-card {
+                padding: 24px 22px 26px;
+            }
+        }
+
+        /* Loading overlay */
+        #page-loader {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loader-spinner {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 4px solid rgba(148, 163, 184, 0.4);
+            border-top-color: #38bdf8;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .loader-text {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #e5e7eb;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
+
 <body>
-<div id="page-loader">
-    <div style="text-align:center;">
-        <div class="loader-spinner"></div>
-        <div class="loader-text">Loading...</div>
+    <div id="page-loader">
+        <div style="text-align:center;">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">Loading...</div>
+        </div>
     </div>
-</div>
 
-<?php
-$pageTitle = 'Dashboard';
-$showExport = false;
-include 'header.php';
-?>
+    <?php
+    $pageTitle = 'Dashboard';
+    $showExport = false;
+    include 'header.php';
+    ?>
 
-<!-- <div class="main-wrapper">
+    <!-- <div class="main-wrapper">
     <div class="dashboard-card">
         <h1 class="dashboard-title">
             Welcome, <?php echo htmlspecialchars($userName, ENT_QUOTES, 'UTF-8'); ?>
@@ -215,9 +256,9 @@ include 'header.php';
     </div>
 </div> -->
 
-<?php include 'footer.php'; ?>
+    <?php include 'footer.php'; ?>
 
-<!-- <script>
+    <!-- <script>
 document.addEventListener('DOMContentLoaded', function () {
     var links  = document.querySelectorAll('.nav-link');
     var loader = document.getElementById('page-loader');
@@ -241,4 +282,5 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script> -->
 </body>
+
 </html>

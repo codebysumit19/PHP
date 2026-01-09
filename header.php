@@ -6,6 +6,9 @@ if (session_status() === PHP_SESSION_NONE) {
 // Define the base URL from htdocs root
 define('BASE_URL', '/PHP/'); // <-- change to '/php/' if you rename the folder to lowercase
 
+$currentPath = $_SERVER['REQUEST_URI'];
+
+
 $currentPage = basename($_SERVER['PHP_SELF']);  // e.g. "link.php"
 
 $headerTitle = isset($pageTitle) && $pageTitle !== ''
@@ -42,46 +45,66 @@ $base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '..
 
         <!-- Event dropdown -->
         <div class="nav-dropdown">
-            <button class="nav-dropbtn nav-link">Event</button>
+            <button class="nav-dropbtn nav-link
+        <?php echo (strpos($currentPath, '/event/') !== false) ? 'active' : ''; ?>">
+                Event
+            </button>
             <div class="nav-dropdown-content">
                 <a href="<?php echo BASE_URL; ?>event/form.php">Event Form</a>
                 <a href="<?php echo BASE_URL; ?>event/get.php">Event Data</a>
             </div>
         </div>
 
+
         <!-- Employees dropdown -->
         <div class="nav-dropdown">
-            <button class="nav-dropbtn nav-link">Employees</button>
+            <button class="nav-dropbtn nav-link
+        <?php echo (strpos($currentPath, '/employee/') !== false) ? 'active' : ''; ?>">
+                Employees
+            </button>
             <div class="nav-dropdown-content">
                 <a href="<?php echo BASE_URL; ?>employee/form.php">Employees Form</a>
                 <a href="<?php echo BASE_URL; ?>employee/get.php">Employees Data</a>
             </div>
         </div>
 
+
         <!-- Department dropdown -->
         <div class="nav-dropdown">
-            <button class="nav-dropbtn nav-link">Department</button>
+            <button class="nav-dropbtn nav-link
+        <?php echo (strpos($currentPath, '/department/') !== false) ? 'active' : ''; ?>">
+                Department
+            </button>
             <div class="nav-dropdown-content">
                 <a href="<?php echo BASE_URL; ?>department/form.php">Departments Form</a>
                 <a href="<?php echo BASE_URL; ?>department/get.php">Departments Data</a>
             </div>
         </div>
 
+
         <!-- Project dropdown -->
         <div class="nav-dropdown">
-            <button class="nav-dropbtn nav-link">Project</button>
+            <button class="nav-dropbtn nav-link
+        <?php echo (strpos($currentPath, '/project/') !== false) ? 'active' : ''; ?>">
+                Project
+            </button>
             <div class="nav-dropdown-content">
                 <a href="<?php echo BASE_URL; ?>project/form.php">Project Form</a>
                 <a href="<?php echo BASE_URL; ?>project/get.php">Project Data</a>
             </div>
         </div>
 
-        <a href="<?php echo $base; ?>privacy.php" class="nav-link">
+
+        <a href="<?php echo $base; ?>privacy.php"
+            class="nav-link <?php echo (strpos($currentPath, 'privacy.php') !== false) ? 'active' : ''; ?>">
             Privacy Policy &amp; Terms
         </a>
-        <a href="<?php echo $base; ?>contact.php" class="nav-link">
+
+        <a href="<?php echo $base; ?>contact.php"
+            class="nav-link <?php echo (strpos($currentPath, 'contact.php') !== false) ? 'active' : ''; ?>">
             Contact Us
         </a>
+
     </nav>
 
     <div class="header-right">
@@ -206,6 +229,13 @@ $base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '..
             text-align: center;
         }
 
+        .main-nav a.active,
+        .nav-dropbtn.active {
+            background: #9ac4b6;
+            border-radius: 4px;
+        }
+
+
         .nav-link {
             color: white;
             text-decoration: none;
@@ -293,6 +323,12 @@ $base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '..
             font: inherit;
             cursor: pointer;
         }
+
+        .nav-link,
+        .nav-dropbtn {
+            font-weight: 700;
+        }
+
 
         .nav-dropdown-content {
             display: none;

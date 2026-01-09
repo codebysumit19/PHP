@@ -17,59 +17,6 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) >
 $_SESSION['last_activity'] = time();
 
 require_once '../db.php';
-
-// Delete department
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
-    $stmt = $conn->prepare("DELETE FROM departments WHERE id = ?");
-    $stmt->bind_param("s", $id);
-    $stmt->execute();
-    $stmt->close();
-    header("Location: get.php");
-    exit;
-}
-
-// Update department
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POST['search'])) {
-    $id = $_POST['id'];
-    $stmt = $conn->prepare(
-        "UPDATE departments
-         SET department_id=?, dname=?, email=?, number=?, nemployees=?, resp=?, budget=?, status=?, description=?
-         WHERE id=?"
-    );
-    $stmt->bind_param(
-        "ssssisssss",
-        $_POST['department_id'],
-        $_POST['dname'],
-        $_POST['email'],
-        $_POST['number'],
-        $_POST['nemployees'],
-        $_POST['resp'],
-        $_POST['budget'],
-        $_POST['status'],
-        $_POST['description'],
-        $id
-    );
-    $stmt->execute();
-    $stmt->close();
-    header("Location: get.php");
-    exit;
-}
-
-// Search / filter
-$search = trim($_GET['search'] ?? '');
-if ($search !== '') {
-    $like = '%' . $search . '%';
-    $stmt = $conn->prepare(
-        "SELECT * FROM departments
-         WHERE department_id LIKE ? OR dname LIKE ? OR email LIKE ? OR status LIKE ?"
-    );
-    $stmt->bind_param("ssss", $like, $like, $like, $like);
-    $stmt->execute();
-    $result = $stmt->get_result();
-} else {
-    $result = $conn->query("SELECT * FROM departments");
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -100,6 +47,65 @@ if ($search !== '') {
             overflow-x: auto;
         }
 
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .table-header h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            color: #111827;
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .search-box {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+            min-width: 250px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #68A691;
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: #6b7280;
+            cursor: pointer;
+            display: none;
+            user-select: none;
+        }
+
+        .clear-search:hover {
+            color: #111827;
+        }
+
+        .highlight {
+            background-color: #ffe58f;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        input[type="search"]::-webkit-search-cancel-button {
+            display: none;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -124,6 +130,11 @@ if ($search !== '') {
 
         td {
             background: #f9fafb;
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover td {
+            background: #e0f2f1;
         }
 
         td a {
@@ -152,8 +163,15 @@ if ($search !== '') {
             color: #10b981;
         }
 
-        /* Delete Modal */
-        /* Modal overlay */
+        i.fas.fa-plus {
+            color: #68A691;
+        }
+
+        i.fas.fa-plus:hover {
+            color: #4a8970;
+        }
+
+        /* Delete modal */
         .delete-overlay {
             position: fixed;
             inset: 0;
@@ -162,10 +180,8 @@ if ($search !== '') {
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            animation: fadeIn 0.3s ease forwards;
         }
 
-        /* Modal box */
         .delete-modal {
             background: #fff;
             color: #111827;
@@ -175,18 +191,15 @@ if ($search !== '') {
             max-width: 400px;
             box-shadow: 0 20px 50px rgba(15, 23, 42, 0.4);
             position: relative;
-            transform: translateY(-50px);
-            opacity: 0;
-            animation: slideIn 0.3s ease forwards;
+            animation: modalSlideIn 0.2s ease-out;
         }
 
-        /* Close button */
         .delete-close {
             position: absolute;
             top: 12px;
             right: 12px;
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             border: none;
             background: #f3f4f6;
@@ -200,12 +213,10 @@ if ($search !== '') {
         }
 
         .delete-close:hover {
-            background: #ef4444;
-            color: #fff;
-            transform: scale(1.1);
+            background: #e5e7eb;
+            color: #111827;
         }
 
-        /* Icon circle */
         .delete-modal-icon {
             width: 48px;
             height: 48px;
@@ -222,7 +233,6 @@ if ($search !== '') {
             color: #dc2626;
         }
 
-        /* Title and text */
         .delete-title {
             font-size: 18px;
             font-weight: 700;
@@ -235,9 +245,9 @@ if ($search !== '') {
             text-align: center;
             color: #6b7280;
             margin-bottom: 20px;
+            line-height: 1.5;
         }
 
-        /* Action buttons */
         .delete-actions {
             display: flex;
             gap: 10px;
@@ -249,6 +259,7 @@ if ($search !== '') {
             padding: 10px;
             border-radius: 6px;
             font-weight: 600;
+            font-size: 14px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
@@ -256,11 +267,11 @@ if ($search !== '') {
         .btn-delete-cancel {
             background: #fff;
             border: 1px solid #d1d5db;
+            color: #374151;
         }
 
         .btn-delete-cancel:hover {
             background: #f3f4f6;
-            transform: scale(1.05);
         }
 
         .btn-delete-confirm {
@@ -271,7 +282,18 @@ if ($search !== '') {
 
         .btn-delete-confirm:hover {
             background: #b91c1c;
-            transform: scale(1.05);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @media(min-width:768px) {
@@ -291,28 +313,10 @@ if ($search !== '') {
                 padding: 8px 6px;
                 font-size: 0.8rem;
             }
-        }
 
-        /* Animations */
-        @keyframes slideIn {
-            0% {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-
-            100% {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes fadeIn {
-            0% {
-                opacity: 0;
-            }
-
-            100% {
-                opacity: 1;
+            .delete-modal {
+                min-width: 280px;
+                margin: 0 16px;
             }
         }
     </style>
@@ -324,68 +328,74 @@ if ($search !== '') {
     $showExport = true;
     include '../header.php';
     ?>
+
     <div class="table-container">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-            <h1 style="margin:0;">Department Data</h1>
-            <form method="get" style="margin-bottom:12px;">
-                <input type="text" name="search" placeholder="Dept ID/Department Name" value="<?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?>" style="padding:6px 8px;border-radius:4px;border:1px solid #ccc;">
-                <button type="submit" style="padding:6px 10px;border-radius:4px;border:1px solid #111827;background:#111827;color:#f9fafb;cursor:pointer;">Search</button>
-            </form>
+        <div class="table-header">
+            <h1>Department Data</h1>
+            <div class="search-wrapper">
+                <input type="text" id="liveSearch" class="search-box" placeholder="Search department data" autocomplete="off">
+                <span id="clearSearch" class="clear-search">&times;</span>
+            </div>
         </div>
 
         <table>
-            <tr>
-                <th>Department Name</th>
-                <th>Department ID</th>
-                <th>Email</th>
-                <th>Contact Number</th>
-                <th>Employees</th>
-                <th>Responsibilities</th>
-                <th>Annual Budget</th>
-                <th>Status</th>
-                <th>Description</th>
-                <th>Update</th>
-                <th>Delete</th>
-                <th>Add New</th>
-            </tr>
-            <?php
-            if ($result && $result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
-                    $id = htmlspecialchars($row['id']);
-                    $dname = htmlspecialchars($row['dname']);
-                    echo "<tr>";
-                    echo "<td>{$dname}</td>";
-                    echo "<td>" . htmlspecialchars($row['department_id']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['number']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['nemployees']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['resp']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['budget']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['status']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['description']) . "</td>";
-                    echo "<td><a href='update.php?id={$id}'><i class='fas fa-edit'></i></a></td>";
-                    echo "<td><i class='fas fa-trash' onclick='showDeleteModal(\"{$id}\",\"{$dname}\")'></i></td>";
-                    echo "<td><a href='form.php'><i class='fas fa-plus'></i></a></td>";
-                    echo "</tr>";
+            <thead>
+                <tr>
+                    <th>Department Name</th>
+                    <th>Department ID</th>
+                    <th>Email</th>
+                    <th>Contact Number</th>
+                    <th>Employees</th>
+                    <th>Responsibilities</th>
+                    <th>Annual Budget</th>
+                    <th>Status</th>
+                    <th>Description</th>
+                    <th>Update</th>
+                    <th>Delete</th>
+                    <th>Add</th>
+                </tr>
+            </thead>
+            <tbody id="tableData">
+                <?php
+                $result = $conn->query("SELECT * FROM departments ORDER BY dname ASC");
+                if ($result && $result->num_rows > 0) {
+                    while ($row = $result->fetch_assoc()) {
+                        $id = htmlspecialchars($row['id'], ENT_QUOTES);
+                        $dname = htmlspecialchars($row['dname'], ENT_QUOTES);
+                        echo "<tr>
+                    <td>{$dname}</td>
+                    <td>" . htmlspecialchars($row['department_id']) . "</td>
+                    <td>" . htmlspecialchars($row['email']) . "</td>
+                    <td>" . htmlspecialchars($row['number']) . "</td>
+                    <td>" . htmlspecialchars($row['nemployees']) . "</td>
+                    <td>" . htmlspecialchars($row['resp']) . "</td>
+                    <td>" . htmlspecialchars($row['budget']) . "</td>
+                    <td>" . htmlspecialchars($row['status']) . "</td>
+                    <td>" . htmlspecialchars($row['description']) . "</td>
+                    <td><a href='update.php?id={$id}'><i class='fas fa-edit'></i></a></td>
+                    <td><i class='fas fa-trash' onclick='showDeleteModal(\"{$id}\", \"{$dname}\")'></i></td>
+                    <td><a href='form.php'><i class='fas fa-plus'></i></a></td>
+                </tr>";
+                    }
+                } else {
+                    echo "<tr><td colspan='12'>No data found</td></tr>";
                 }
-            } else {
-                echo "<tr><td colspan='12'>No data found</td><td><a href='form.php'><i class='fas fa-plus'></i></a></td></tr>";
-            }
-            $conn->close();
-            ?>
+                $conn->close();
+                ?>
+            </tbody>
         </table>
     </div>
 
     <!-- Delete Modal -->
     <div class="delete-overlay" id="delete-overlay">
         <div class="delete-modal">
-            <button class="delete-close" onclick="hideDeleteModal()">&times;</button>
+            <button class="delete-close" id="delete-close">&times;</button>
             <div class="delete-modal-icon"><i class="fas fa-exclamation-triangle"></i></div>
             <div class="delete-title">Delete Department?</div>
-            <div class="delete-text" id="delete-item-name">Are you sure?</div>
+            <div class="delete-text" id="delete-item-name">Are you sure you want to delete this department?</div>
             <div class="delete-actions">
-                <button class="btn-delete-cancel" onclick="hideDeleteModal()">Cancel</button>
-                <button class="btn-delete-confirm" onclick="confirmDelete()">Delete</button>
+                <button class="btn-delete-cancel" id="delete-cancel">Cancel</button>
+                <button class="btn-delete-confirm" id="delete-confirm">Delete</button>
             </div>
         </div>
     </div>
@@ -395,27 +405,105 @@ if ($search !== '') {
 
         function showDeleteModal(id, name) {
             deleteId = id;
-            document.getElementById('delete-item-name').textContent =
-                `Are you sure you want to delete "${name}"? This action cannot be undone.`;
-            const overlay = document.getElementById('delete-overlay');
-            overlay.style.display = 'flex';
-
-            // Trigger animation
-            const modal = overlay.querySelector('.delete-modal');
-            modal.style.animation = 'slideIn 0.3s ease forwards';
+            document.getElementById('delete-item-name').textContent = `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+            document.getElementById('delete-overlay').style.display = 'flex';
         }
 
         function hideDeleteModal() {
-            const overlay = document.getElementById('delete-overlay');
-            overlay.style.display = 'none';
+            document.getElementById('delete-overlay').style.display = 'none';
             deleteId = null;
         }
+        document.getElementById('delete-close').onclick = hideDeleteModal;
+        document.getElementById('delete-cancel').onclick = hideDeleteModal;
+        document.getElementById('delete-confirm').onclick = function() {
+            if (deleteId) window.location.href = "?id=" + encodeURIComponent(deleteId);
+        };
+        document.getElementById('delete-overlay').addEventListener('click', function(e) {
+            if (e.target === this) hideDeleteModal();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') hideDeleteModal();
+        });
 
-        function confirmDelete() {
-            if (deleteId) {
-                window.location.href = "?id=" + encodeURIComponent(deleteId);
-            }
+        // ===========================
+        // LIVE SEARCH
+        // ===========================
+        // ===========================
+        // LIVE SEARCH with "No data found" row
+        // ===========================
+        const searchInput = document.getElementById('liveSearch');
+        const tableData = document.getElementById('tableData');
+        const clearBtn = document.getElementById('clearSearch');
+
+        // Create "No data found" row
+        const noDataRow = document.createElement('tr');
+        noDataRow.id = 'no-data-row';
+        noDataRow.style.display = 'none';
+        noDataRow.innerHTML = `
+    <td colspan="12" style="text-align:center; padding:15px 0;">
+        No data found
+    </td>`;
+        tableData.appendChild(noDataRow);
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
+
+        function resetTable() {
+            const rows = tableData.querySelectorAll('tr');
+            rows.forEach(row => {
+                if (row.id === 'no-data-row') return;
+                row.style.display = '';
+                const cells = row.querySelectorAll('td');
+                for (let i = 0; i < cells.length - 3; i++) {
+                    cells[i].innerHTML = cells[i].textContent;
+                }
+            });
+            noDataRow.style.display = 'none';
+        }
+
+        searchInput.addEventListener('input', function() {
+            const value = this.value.trim().toLowerCase();
+            clearBtn.style.display = value ? 'block' : 'none';
+
+            if (!value) {
+                resetTable();
+                return;
+            }
+
+            const rows = tableData.querySelectorAll('tr');
+            let visibleCount = 0;
+            const regex = new RegExp(`(${escapeRegExp(value)})`, 'gi');
+
+            rows.forEach(row => {
+                if (row.id === 'no-data-row') return;
+
+                let rowMatch = false;
+                const cells = row.querySelectorAll('td');
+
+                for (let i = 0; i < cells.length - 3; i++) {
+                    const text = cells[i].textContent;
+                    if (text.toLowerCase().includes(value)) {
+                        rowMatch = true;
+                        cells[i].innerHTML = text.replace(regex, '<span class="highlight">$1</span>');
+                    } else {
+                        cells[i].innerHTML = text;
+                    }
+                }
+
+                row.style.display = rowMatch ? '' : 'none';
+                if (rowMatch) visibleCount++;
+            });
+
+            noDataRow.style.display = visibleCount === 0 ? '' : 'none';
+        });
+
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            resetTable();
+            searchInput.focus();
+        });
     </script>
 
     <?php include '../footer.php'; ?>
