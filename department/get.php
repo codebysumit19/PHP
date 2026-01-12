@@ -599,7 +599,7 @@ $result = $conn->query("SELECT * FROM departments ORDER BY dname ASC");
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr id='no-data-row'><td colspan='11' style='text-align:center; padding: 20px;'>No data found. <a href='form.php' style='color: #2563eb;'><i class='fas fa-plus'></i> Add your first department</a></td></tr>";
+                        echo "<tr id='no-data-row'><td colspan='11' style='text-align:center; padding: 20px;'>No data found.</td></tr>";
                     }
                     $conn->close();
                     ?>

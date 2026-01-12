@@ -5,9 +5,8 @@ if (!isset($_SESSION['email'])) {
     exit;
 }
 
-// Auto logout after 5 minutes (300 seconds) of inactivity
-$timeout = 5 * 60; // 5 minutes;
-
+// Auto logout after 50 minutes
+$timeout = 50 * 60;
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout) {
     $_SESSION = [];
     session_destroy();
@@ -15,6 +14,16 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) >
     exit;
 }
 $_SESSION['last_activity'] = time();
+
+// Get error message and form data from session
+$errorField = $_SESSION['error_field'] ?? '';
+$errorMessage = $_SESSION['error_message'] ?? '';
+$formData = $_SESSION['form_data'] ?? [];
+
+// Clear session data after retrieving
+unset($_SESSION['error_field']);
+unset($_SESSION['error_message']);
+unset($_SESSION['form_data']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -23,8 +32,9 @@ $_SESSION['last_activity'] = time();
     <meta charset="UTF-8">
     <title>Department Form</title>
     <link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
-     <style>
+    <style>
         * {
             box-sizing: border-box;
             margin: 0;
@@ -60,6 +70,46 @@ $_SESSION['last_activity'] = time();
             font-size: 1.75rem;
             font-weight: 700;
             color: #111827;
+        }
+
+        /* Inline Error Message */
+        .field-error {
+            background: #fef2f2;
+            border-left: 4px solid #dc2626;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .field-error i {
+            color: #dc2626;
+            font-size: 16px;
+        }
+
+        .field-error-text {
+            color: #dc2626;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .input-error {
+            border-color: #dc2626 !important;
+            background: #fef2f2 !important;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         form h2 {
@@ -163,7 +213,7 @@ $_SESSION['last_activity'] = time();
         
         @media (max-width: 480px) {
             body {
-                padding-top: 100px;  /* more space for wrapped header on mobile */
+                padding-top: 100px;
             }
             
             .main-wrapper {
@@ -205,44 +255,78 @@ $_SESSION['last_activity'] = time();
             <form action="send.php" method="POST">
                 <h1>Department Form</h1>
 
-                <!-- Business Department ID stored in department_id -->
                 <h2>Department ID:
                     <input type="text" name="department_id" placeholder="Enter Department ID"
-                        maxlength="100" required>
+                        maxlength="100" 
+                        class="<?php echo ($errorField === 'department_id') ? 'input-error' : ''; ?>"
+                        value="<?php echo htmlspecialchars($formData['department_id'] ?? '', ENT_QUOTES); ?>" required>
+                    <?php if ($errorField === 'department_id'): ?>
+                        <div class="field-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
+                        </div>
+                    <?php endif; ?>
                 </h2>
 
                 <h2>Department Name:
                     <input type="text" name="dname" placeholder="Enter Department" pattern="[A-Za-z\s]+"
-                        title="Only letters and spaces allowed" required>
+                        title="Only letters and spaces allowed" 
+                        class="<?php echo ($errorField === 'dname') ? 'input-error' : ''; ?>"
+                        value="<?php echo htmlspecialchars($formData['dname'] ?? '', ENT_QUOTES); ?>" required>
+                    <?php if ($errorField === 'dname'): ?>
+                        <div class="field-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
+                        </div>
+                    <?php endif; ?>
                 </h2>
 
                 <h2>Email:
-                    <input type="email" name="email" placeholder="Enter Email" required>
+                    <input type="email" name="email" placeholder="Enter Email" 
+                        class="<?php echo ($errorField === 'email') ? 'input-error' : ''; ?>"
+                        value="<?php echo htmlspecialchars($formData['email'] ?? '', ENT_QUOTES); ?>" required>
+                    <?php if ($errorField === 'email'): ?>
+                        <div class="field-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
+                        </div>
+                    <?php endif; ?>
                 </h2>
 
                 <h2>Contact Number:
-                    <input type="tel" name="number" minlength="10" maxlength="13" placeholder="Enter Number" required>
-                </h2>
+                    <input type="tel" name="number" minlength="10" maxlength="13" placeholder="Enter Number" 
+                        class="<?php echo ($errorField === 'number') ? 'input-error' : ''; ?>"
+                        value="<?php echo htmlspecialchars($formData['number'] ?? '', ENT_QUOTES); ?>" required>
+                    <?php if ($errorField === 'number'): ?>
+                        <div class="field-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
+                        </div>
+                    <?php endif; ?>
+                                </h2>
 
                 <h2>Number of Employees:
-                    <input type="number" name="nemployees" min="1" placeholder="Enter Total number of Employees" required>
+                    <input type="number" name="nemployees" min="1" placeholder="Enter Total number of Employees" 
+                        value="<?php echo htmlspecialchars($formData['nemployees'] ?? '', ENT_QUOTES); ?>" required>
                 </h2>
 
                 <h2>Department Responsibilities:
-                    <input type="text" name="resp" placeholder="Enter Responsibilities" required>
+                    <input type="text" name="resp" placeholder="Enter Responsibilities" 
+                        value="<?php echo htmlspecialchars($formData['resp'] ?? '', ENT_QUOTES); ?>" required>
                 </h2>
 
                 <h2>Annual Budget:
-                    <input type="text" name="budget" value="₹" placeholder="Enter Annual Budget" required>
+                    <input type="text" name="budget" placeholder="Enter Annual Budget" 
+                        value="<?php echo htmlspecialchars($formData['budget'] ?? '₹', ENT_QUOTES); ?>" required>
                 </h2>
 
                 <h2>Department Status:
-                    <label><input type="radio" name="status" value="Active" required> Active</label>
-                    <label><input type="radio" name="status" value="Inactive" required> Inactive</label>
+                    <label><input type="radio" name="status" value="Active" <?php echo (isset($formData['status']) && $formData['status'] === 'Active') ? 'checked' : ''; ?> required> Active</label>
+                    <label><input type="radio" name="status" value="Inactive" <?php echo (isset($formData['status']) && $formData['status'] === 'Inactive') ? 'checked' : ''; ?> required> Inactive</label>
                 </h2>
 
                 <h2>Description:
-                    <textarea name="description" placeholder="Write Description"></textarea>
+                    <textarea name="description" placeholder="Write Description"><?php echo htmlspecialchars($formData['description'] ?? '', ENT_QUOTES); ?></textarea>
                 </h2>
 
                 <button type="submit">Submit</button>
@@ -250,7 +334,36 @@ $_SESSION['last_activity'] = time();
         </div>
     </div>
 
+    <script>
+        // Auto-hide field error after 5 seconds
+        const fieldErrors = document.querySelectorAll('.field-error');
+        if (fieldErrors.length > 0) {
+            setTimeout(() => {
+                fieldErrors.forEach(error => {
+                    error.style.opacity = '0';
+                    error.style.transition = 'opacity 0.3s ease';
+                    setTimeout(() => {
+                        error.style.display = 'none';
+                        // Remove error class from input
+                        const input = error.previousElementSibling;
+                        if (input) {
+                            input.classList.remove('input-error');
+                        }
+                    }, 300);
+                });
+            }, 5000);
+
+            // Scroll to error field
+            const errorInput = document.querySelector('.input-error');
+            if (errorInput) {
+                errorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                errorInput.focus();
+            }
+        }
+    </script>
+
     <?php include '../footer.php'; ?>
 </body>
 
 </html>
+

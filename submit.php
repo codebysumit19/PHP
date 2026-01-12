@@ -124,7 +124,7 @@ include 'header.php';
     <div class="container">
         <div class="success-icon"></div>
         <h1>Form Submitted Successfully</h1>
-        <h2>Go to the</h3>
+        <h2>Go to the</h2>
         <a href="link.php" class="btn-link">Home Page</a>
     </div>
 </div>

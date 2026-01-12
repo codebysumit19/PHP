@@ -5,9 +5,8 @@ if (!isset($_SESSION['email'])) {
     exit;
 }
 
-// Auto logout after 50 minutes (300 seconds) of inactivity
+// Auto logout after 50 minutes
 $timeout = 50 * 60;
-
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout) {
     $_SESSION = [];
     session_destroy();
@@ -15,239 +14,353 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) >
     exit;
 }
 $_SESSION['last_activity'] = time();
+
+// Get error message and form data from session
+$errorField = $_SESSION['error_field'] ?? '';
+$errorMessage = $_SESSION['error_message'] ?? '';
+$formData = $_SESSION['form_data'] ?? [];
+
+// Clear session data after retrieving
+unset($_SESSION['error_field']);
+unset($_SESSION['error_message']);
+unset($_SESSION['form_data']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Event Form</title>
-<link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
-<style>
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
-    
-    body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(135deg, #e8f5e9, #ffffff);
-        margin: 0;
-        min-height: 100vh;
-    }
-    
-    .main-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        padding: 24px 16px 80px;
-    }
-    
-    .event-form-card {
-        background: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        padding: 28px 24px;
-        width: 100%;
-        max-width: 600px;
-    }
-    
-    .event-form-title {
-        text-align: center;
-        margin-bottom: 20px;
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: #111827;
-    }
-    
-    .field-group {
-        margin-bottom: 16px;
-    }
-    
-    .field-group label {
-        display: block;
-        font-size: 0.95rem;
-        margin-bottom: 6px;
-        color: #111827;
-        font-weight: 600;
-    }
-    
-    .field-group input[type="text"],
-    .field-group input[type="date"],
-    .field-group input[type="time"] {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        background: #f9fafb;
-        font-size: 0.95rem;
-        transition: border-color 0.2s, background 0.2s;
-    }
-    
-    .field-group input[type="text"]:focus,
-    .field-group input[type="date"]:focus,
-    .field-group input[type="time"]:focus {
-        outline: none;
-        border-color: #68A691;
-        background: #ffffff;
-    }
-    
-    .radio-group {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        margin-top: 8px;
-    }
-    
-    .radio-group label {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-weight: 400;
-        cursor: pointer;
-    }
-    
-    .radio-group input[type="radio"] {
-        cursor: pointer;
-        width: 16px;
-        height: 16px;
-    }
-    
-    button[type="submit"] {
-        background: #68A691;
-        color: #fff;
-        border: none;
-        padding: 12px;
-        border-radius: 6px;
-        cursor: pointer;
-        width: 100%;
-        font-size: 1.05rem;
-        font-weight: 600;
-        margin-top: 24px;
-        transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
-    }
-    
-    button[type="submit"]:hover {
-        background: #4a8970;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 14px rgba(104, 166, 145, 0.3);
-    }
-    
-    button[type="submit"]:active {
-        transform: translateY(0);
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
+    <meta charset="UTF-8">
+    <title>Event Form</title>
+    <link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
         body {
-            padding-top: 80px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #e8f5e9, #ffffff);
+            margin: 0;
+            min-height: 100vh;
         }
         
         .main-wrapper {
-            padding: 20px 12px 60px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 24px 16px 80px;
         }
         
         .event-form-card {
-            padding: 20px 16px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 600px;
         }
         
         .event-form-title {
-            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #111827;
         }
-    }
-    
-    @media (max-width: 480px) {
-        body {
-            padding-top: 100px;  /* more space for wrapped header on mobile */
+
+        /* Inline Error Message */
+        .field-error {
+            background: #fef2f2;
+            border-left: 4px solid #dc2626;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .field-error i {
+            color: #dc2626;
+            font-size: 16px;
+        }
+
+        .field-error-text {
+            color: #dc2626;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .input-error {
+            border-color: #dc2626 !important;
+            background: #fef2f2 !important;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
-        .main-wrapper {
-            padding: 16px 12px 50px;
-        }
-        
-        .event-form-card {
-            padding: 16px 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        }
-        
-        .event-form-title {
-            font-size: 1.3rem;
+        .field-group {
             margin-bottom: 16px;
         }
         
-        button[type="submit"] {
-            font-size: 1rem;
-            padding: 10px;
+        .field-group label {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            color: #111827;
+            font-weight: 600;
         }
-    }
-</style>
+        
+        .field-group input[type="text"],
+        .field-group input[type="date"],
+        .field-group input[type="time"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: #f9fafb;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        
+        .field-group input[type="text"]:focus,
+        .field-group input[type="date"]:focus,
+        .field-group input[type="time"]:focus {
+            outline: none;
+            border-color: #68A691;
+            background: #ffffff;
+        }
+        
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 8px;
+        }
+        
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 400;
+            cursor: pointer;
+        }
+        
+        .radio-group input[type="radio"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+        
+        button[type="submit"] {
+            background: #68A691;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-top: 24px;
+            transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        
+        button[type="submit"]:hover {
+            background: #4a8970;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(104, 166, 145, 0.3);
+        }
+        
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 80px;
+            }
+            
+            .main-wrapper {
+                padding: 20px 12px 60px;
+            }
+            
+            .event-form-card {
+                padding: 20px 16px;
+            }
+            
+            .event-form-title {
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding-top: 100px;
+            }
+            
+            .main-wrapper {
+                padding: 16px 12px 50px;
+            }
+            
+            .event-form-card {
+                padding: 16px 12px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            }
+            
+            .event-form-title {
+                font-size: 1.3rem;
+                margin-bottom: 16px;
+            }
+            
+            button[type="submit"] {
+                font-size: 1rem;
+                padding: 10px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-<?php
-$pageTitle = 'Event Form';
-$showExport = false;
-include '../header.php';
-?>
+    <?php
+    $pageTitle = 'Event Form';
+    $showExport = false;
+    include '../header.php';
+    ?>
 
-<div class="main-wrapper">
-    <div class="event-form-card">
-        <h1 class="event-form-title">Event Form</h1>
-        <form method="POST" action="send.php">
-            <div class="field-group">
-                <label for="department_id">Department ID:</label>
-                <input type="text" id="department_id" name="department_id"
-                       maxlength="100" required>
-            </div>
-
-            <div class="field-group">
-                <label for="name">Event Name:</label>
-                <input type="text" id="name" name="name"
-                       pattern="[A-Za-z\s]+"
-                       title="Only letters and spaces allowed" required>
-            </div>
-
-            <div class="field-group">
-                <label for="address">Event Address:</label>
-                <input type="text" id="address" name="address" required>
-            </div>
-
-            <div class="field-group">
-                <label for="date">Event Date:</label>
-                <input type="date" id="date" name="date" required>
-            </div>
-
-            <div class="field-group">
-                <label for="stime">Event Start Time:</label>
-                <input type="time" id="stime" name="stime" required>
-            </div>
-
-            <div class="field-group">
-                <label for="etime">Event End Time:</label>
-                <input type="time" id="etime" name="etime" required>
-            </div>
-
-            <div class="field-group">
-                <label for="type">Type of Event:</label>
-                <input type="text" id="type" name="type" required>
-            </div>
-
-            <div class="field-group">
-                <label>Event Happened:</label>
-                <div class="radio-group">
-                    <label>
-                        <input type="radio" name="happend" value="Yes" required> Yes
-                    </label>
-                    <label>
-                        <input type="radio" name="happend" value="No" required> No
-                    </label>
+    <div class="main-wrapper">
+        <div class="event-form-card">
+            <h1 class="event-form-title">Event Form</h1>
+            <form method="POST" action="send.php">
+                <div class="field-group">
+                    <label for="department_id">Department ID:</label>
+                    <input type="text" id="department_id" name="department_id"
+                           class="<?php echo ($errorField === 'department_id') ? 'input-error' : ''; ?>"
+                           maxlength="100" 
+                           value="<?php echo htmlspecialchars($formData['department_id'] ?? '', ENT_QUOTES); ?>" required>
+                    <?php if ($errorField === 'department_id'): ?>
+                        <div class="field-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
+                        </div>
+                    <?php endif; ?>
                 </div>
-            </div>
 
-            <button type="submit">Submit</button>
-        </form>
+                <div class="field-group">
+                    <label for="name">Event Name:</label>
+                    <input type="text" id="name" name="name"
+                           class="<?php echo ($errorField === 'name') ? 'input-error' : ''; ?>"
+                           pattern="[A-Za-z\s]+"
+                           title="Only letters and spaces allowed" 
+                           value="<?php echo htmlspecialchars($formData['name'] ?? '', ENT_QUOTES); ?>" required>
+                    <?php if ($errorField === 'name'): ?>
+                        <div class="field-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="field-group">
+                    <label for="address">Event Address:</label>
+                    <input type="text" id="address" name="address" 
+                           value="<?php echo htmlspecialchars($formData['address'] ?? '', ENT_QUOTES); ?>" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="date">Event Date:</label>
+                    <input type="date" id="date" name="date" 
+                           class="<?php echo ($errorField === 'date') ? 'input-error' : ''; ?>"
+                           value="<?php echo htmlspecialchars($formData['date'] ?? '', ENT_QUOTES); ?>" required>
+                    <?php if ($errorField === 'date'): ?>
+                        <div class="field-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="field-group">
+                    <label for="stime">Event Start Time:</label>
+                    <input type="time" id="stime" name="stime" 
+                           value="<?php echo htmlspecialchars($formData['stime'] ?? '', ENT_QUOTES); ?>" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="etime">Event End Time:</label>
+                    <input type="time" id="etime" name="etime" 
+                           value="<?php echo htmlspecialchars($formData['etime'] ?? '', ENT_QUOTES); ?>" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="type">Type of Event:</label>
+                    <input type="text" id="type" name="type" 
+                           value="<?php echo htmlspecialchars($formData['type'] ?? '', ENT_QUOTES); ?>" required>
+                </div>
+
+                <div class="field-group">
+                    <label>Event Happened:</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="happend" value="Yes" 
+                                   <?php echo (isset($formData['happend']) && $formData['happend'] === 'Yes') ? 'checked' : ''; ?> required> Yes
+                        </label>
+                        <label>
+                            <input type="radio" name="happend" value="No" 
+                                   <?php echo (isset($formData['happend']) && $formData['happend'] === 'No') ? 'checked' : ''; ?> required> No
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit">Submit</button>
+            </form>
+        </div>
     </div>
-</div>
 
-<?php include '../footer.php'; ?>
+    <script>
+        // Auto-hide field error after 5 seconds
+        const fieldErrors = document.querySelectorAll('.field-error');
+        if (fieldErrors.length > 0) {
+            setTimeout(() => {
+                fieldErrors.forEach(error => {
+                    error.style.opacity = '0';
+                    error.style.transition = 'opacity 0.3s ease';
+                    setTimeout(() => {
+                        error.style.display = 'none';
+                        // Remove error class from input
+                        const input = error.previousElementSibling;
+                        if (input) {
+                            input.classList.remove('input-error');
+                        }
+                    }, 300);
+                });
+            }, 5000);
+
+            // Scroll to error field
+            const errorInput = document.querySelector('.input-error');
+            if (errorInput) {
+                errorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                errorInput.focus();
+            }
+        }
+    </script>
+
+    <?php include '../footer.php'; ?>
 </body>
+
 </html>
+
