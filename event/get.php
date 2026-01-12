@@ -15,33 +15,65 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) >
 }
 $_SESSION['last_activity'] = time();
 
-// Export button
-if (isset($_POST['export'])) {
-    header('Location: export.php');
-    exit;
-}
-
 require_once '../db.php';
 
 // ---------------------------
-// DELETE EVENT
+// BULK DELETE
 // ---------------------------
-if (isset($_GET['id'])) {
-    $id = trim($_GET['id']);
-    if ($id !== '') {
-        $stmt = $conn->prepare("DELETE FROM events WHERE id = ?");
+if (isset($_POST['bulk_delete']) && isset($_POST['selected_ids']) && is_array($_POST['selected_ids'])) {
+    $stmt = $conn->prepare("DELETE FROM events WHERE id = ?");
+    foreach ($_POST['selected_ids'] as $id) {
         $stmt->bind_param("s", $id);
         $stmt->execute();
-        $stmt->close();
-        header("Location: get.php");
-        exit;
     }
+    $stmt->close();
+    header("Location: get.php");
+    exit;
+}
+
+// ---------------------------
+// EXPORT TO CSV
+// ---------------------------
+if (isset($_POST['export'])) {
+    // Check if specific rows are selected
+    if (isset($_POST['selected_ids']) && is_array($_POST['selected_ids']) && count($_POST['selected_ids']) > 0) {
+        // Export selected rows only
+        $placeholders = implode(',', array_fill(0, count($_POST['selected_ids']), '?'));
+        $stmt = $conn->prepare("SELECT * FROM events WHERE id IN ($placeholders)");
+        $types = str_repeat('s', count($_POST['selected_ids']));
+        $stmt->bind_param($types, ...$_POST['selected_ids']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    } else {
+        // Export all rows
+        $result = $conn->query("SELECT * FROM events");
+    }
+
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=events_export_' . date('Y-m-d_His') . '.csv');
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ['Name', 'Department ID', 'Address', 'Date', 'Start Time', 'End Time', 'Type', 'Happened']);
+    
+    while ($row = $result->fetch_assoc()) {
+        fputcsv($output, [
+            $row['name'],
+            $row['department_id'],
+            $row['address'],
+            $row['date'],
+            $row['stime'],
+            $row['etime'],
+            $row['type'],
+            $row['happend']
+        ]);
+    }
+    fclose($output);
+    exit;
 }
 
 // ---------------------------
 // UPDATE EVENT
 // ---------------------------
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POST['export'])) {
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POST['export']) && !isset($_POST['bulk_delete'])) {
     $id = $_POST['id'];
     $department_id = htmlspecialchars(trim($_POST['department_id']), ENT_QUOTES, 'UTF-8');
     $name = htmlspecialchars(trim($_POST['name']), ENT_QUOTES, 'UTF-8');
@@ -106,13 +138,167 @@ $result = $conn->query("SELECT * FROM events");
             align-items: center;
             justify-content: space-between;
             margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 12px;
+            flex-wrap: nowrap;
+            gap: 16px;
         }
 
-        .table-header h1 {
-            margin: 0;
-            font-size: 1.75rem;
+       .table-header h1 {
+    margin: 0;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.table-header h1 a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #10b981;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.table-header h1 a:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.table-header h1 a i {
+    font-size: 0.9rem;
+}
+
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: nowrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-add {
+            background: #68A691;
+            color: #fff;
+        }
+
+        .btn-add:hover {
+            background: #4a8970;
+            transform: translateY(-1px);
+        }
+
+        .btn-delete {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .btn-delete:hover:not(:disabled) {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .btn-delete:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-export {
+            background: #111827;
+            color: #fff;
+        }
+
+        .btn-export:hover {
+            background: #374151;
+            transform: translateY(-1px);
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .search-box {
+            padding: 10px 35px 10px 40px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #f3f4f6;
+            font-size: 14px;
+            min-width: 250px;
+            width: 250px;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #68A691;
+            background: #fff;
+        }
+
+        .search-box::placeholder {
+            color: #9ca3af;
+        }
+
+        /* Hide native search clear button */
+        .search-box::-webkit-search-cancel-button {
+            display: none;
+            -webkit-appearance: none;
+        }
+
+        .search-box::-webkit-search-decoration {
+            display: none;
+            -webkit-appearance: none;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #9ca3af;
+            pointer-events: none;
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #9ca3af;
+            cursor: pointer;
+            display: none;
+            user-select: none;
+            line-height: 1;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .clear-search:hover {
+            background: #e5e7eb;
             color: #111827;
         }
 
@@ -145,6 +331,11 @@ $result = $conn->query("SELECT * FROM events");
 
         .table-container tbody tr:hover td {
             background: #e0f2f1;
+            cursor: pointer;
+        }
+
+        .table-container tr.selected td {
+            background: #b2dfdb !important;
         }
 
         .table-container td a {
@@ -156,15 +347,6 @@ $result = $conn->query("SELECT * FROM events");
             color: #2563eb;
         }
 
-        .table-container i.fas.fa-trash {
-            color: #b91c1c;
-            cursor: pointer;
-        }
-
-        .table-container i.fas.fa-trash:hover {
-            color: #ef4444;
-        }
-
         .table-container i.fas.fa-edit {
             color: #065f46;
         }
@@ -173,12 +355,19 @@ $result = $conn->query("SELECT * FROM events");
             color: #10b981;
         }
 
-        .table-container i.fas.fa-plus {
-            color: #68A691;
+        .checkbox-cell {
+            width: 40px;
         }
 
-        .table-container i.fas.fa-plus:hover {
-            color: #4a8970;
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .highlight {
+            background-color: #ffe58f;
+            font-weight: 600;
         }
 
         /* Delete Modal */
@@ -198,7 +387,7 @@ $result = $conn->query("SELECT * FROM events");
             padding: 24px;
             border-radius: 12px;
             min-width: 320px;
-            max-width: 400px;
+            max-width: 450px;
             box-shadow: 0 20px 50px rgba(15, 23, 42, 0.4);
             position: relative;
             animation: modalSlideIn 0.2s ease-out;
@@ -294,54 +483,11 @@ $result = $conn->query("SELECT * FROM events");
             background: #b91c1c;
         }
 
-        .search-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        .search-box {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
-            font-size: 14px;
-            min-width: 250px;
-        }
-
-        .search-box:focus {
-            outline: none;
-            border-color: #68A691;
-        }
-
-        .clear-search {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 18px;
-            color: #6b7280;
-            cursor: pointer;
-            display: none;
-            user-select: none;
-        }
-
-        .clear-search:hover {
-            color: #111827;
-        }
-
-        .highlight {
-            background-color: #ffe58f;
-        }
-
-        input[type="search"]::-webkit-search-cancel-button {
-            display: none;
-        }
-
         @keyframes modalSlideIn {
             from {
                 opacity: 0;
                 transform: translateY(-20px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -358,11 +504,25 @@ $result = $conn->query("SELECT * FROM events");
             }
         }
 
+        @media (max-width:1200px) {
+            .table-header {
+                flex-wrap: wrap;
+            }
+
+            .header-right {
+                flex-wrap: wrap;
+            }
+        }
+
         @media (max-width:768px) {
             .table-header {
                 flex-direction: column;
                 align-items: stretch;
             }
+
+            .header-right {
+                flex-direction: column;
+                }
 
             .search-box {
                 min-width: 100%;
@@ -395,96 +555,96 @@ $result = $conn->query("SELECT * FROM events");
 <body>
     <?php
     $pageTitle = 'Event Data';
-    $showExport = true;
+    $showExport = false;
     include '../header.php';
     ?>
 
     <div class="table-container">
         <div class="table-header">
-            <h1>Project Data</h1>
-            <div class="search-wrapper">
-                <input type="search" id="liveSearch" class="search-box" placeholder="Search projects..." autocomplete="off" />
-                <span id="clearSearch" class="clear-search">&times;</span>
+             <h1>
+        <a href="../link.php">
+            <i class="fas fa-chevron-left"></i> Home
+        </a>
+    </h1>
+    
+            
+            <div class="header-right">
+                <a href="form.php" class="btn btn-add">
+                    <i class="fas fa-plus"></i> Add New Data
+                </a>
+                <button type="button" class="btn btn-delete" id="bulk-delete-btn" disabled onclick="showBulkDeleteModal()">
+                    <i class="fas fa-trash"></i> Delete Selected (<span id="selected-count">0</span>)
+                </button>
+                <button type="button" class="btn btn-export" onclick="handleExport()">
+                    <i class="fas fa-download"></i> Export Data
+                </button>
+                
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="search" id="liveSearch" class="search-box" placeholder="Search Event" autocomplete="off" />
+                    <span id="clearSearch" class="clear-search">&times;</span>
+                </div>
             </div>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Department ID</th>
-                    <th>Address</th>
-                    <th>Date</th>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Type</th>
-                    <th>Happened</th>
-                    <th>Update</th>
-                    <th>Delete</th>
-                    <th>Add</th>
-                </tr>
-            </thead>
-            <tbody id="tableData">
-                <?php
+        <form method="post" id="bulk-form">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="checkbox-cell">
+                            <input type="checkbox" id="select-all" onclick="toggleSelectAll()">
+                        </th>
+                        <th>Name</th>
+                        <th>Department ID</th>
+                        <th>Address</th>
+                        <th>Date</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Type</th>
+                        <th>Happened</th>
+                        <th>Update</th>
+                    </tr>
+                </thead>
+                <tbody id="tableData">
+                    <?php
+                    if ($result && $result->num_rows > 0) {
+                        while ($row = $result->fetch_assoc()) {
+                            $id = htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8');
+                            $name = htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8');
 
-
-
-                if ($result && $result->num_rows > 0) {
-                    while ($row = $result->fetch_assoc()) {
-
-                        $id   = htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8');
-                        $name = htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8');
-
-                        echo "<tr>";
-                        echo "<td>{$name}</td>";
-                        echo "<td>" . htmlspecialchars($row['department_id']) . "</td>";
-                        echo "<td>" . htmlspecialchars($row['address']) . "</td>";
-                        echo "<td>" . htmlspecialchars($row['date']) . "</td>";
-                        echo "<td>" . htmlspecialchars($row['stime']) . "</td>";
-                        echo "<td>" . htmlspecialchars($row['etime']) . "</td>";
-                        echo "<td>" . htmlspecialchars($row['type']) . "</td>";
-                        echo "<td>" . htmlspecialchars($row['happend']) . "</td>";
-
-                        echo "<td>
-                <a href='update.php?id={$id}'>
-                    <i class='fas fa-edit'></i>
-                </a>
-              </td>";
-
-                        echo "<td>
-                <i class='fas fa-trash'
-                   onclick='showDeleteModal(\"{$id}\", \"{$name}\")'>
-                </i>
-              </td>";
-
-                        echo "<td>
-                <a href='form.php'>
-                    <i class='fas fa-plus'></i>
-                </a>
-              </td>";
-
-                        echo "</tr>";
+                            echo "<tr class='data-row' data-id='{$id}' data-name='{$name}'>";
+                            echo "<td class='checkbox-cell'><input type='checkbox' name='selected_ids[]' value='{$id}' class='row-checkbox' onchange='updateBulkActions()'></td>";
+                            echo "<td>{$name}</td>";
+                            echo "<td>" . htmlspecialchars($row['department_id']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['address']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['date']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['stime']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['etime']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['type']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['happend']) . "</td>";
+                            echo "<td><a href='update.php?id={$id}'><i class='fas fa-edit'></i></a></td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr id='no-data-row'><td colspan='10' style='text-align:center; padding: 20px;'>No data found. <a href='form.php' style='color: #2563eb;'><i class='fas fa-plus'></i> Add your first event</a></td></tr>";
                     }
-                }
-
-                ?>
-                <tr id="no-data-row" style="display:none;">
-                    <td colspan="11" style="text-align:center; padding: 15px 0;">No data found</td>
-                </tr>
-
-            </tbody>
-
-
-        </table>
+                    $conn->close();
+                    ?>
+                    <tr id="no-search-row" style="display:none;">
+                        <td colspan="10" style="text-align:center; padding: 20px;">No events found matching your search.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
     </div>
 
-    <!-- Delete Modal -->
+    <!-- Bulk Delete Modal -->
     <div class="delete-overlay" id="delete-overlay">
         <div class="delete-modal">
             <button type="button" class="delete-close" id="delete-close">&times;</button>
             <div class="delete-modal-icon"><i class="fas fa-exclamation-triangle"></i></div>
-            <div class="delete-title">Delete Event?</div>
-            <div class="delete-text" id="delete-event-name">Are you sure you want to delete this event?</div>
+            <div class="delete-title">Delete Events?</div>
+            <div class="delete-text" id="delete-event-text">Are you sure you want to delete the selected events?</div>
             <div class="delete-actions">
                 <button type="button" class="btn-delete-cancel" id="delete-cancel">Cancel</button>
                 <button type="button" class="btn-delete-confirm" id="delete-confirm">Delete</button>
@@ -493,27 +653,66 @@ $result = $conn->query("SELECT * FROM events");
     </div>
 
     <script>
-        let deleteId = null;
+        // =============================
+        // EXPORT FUNCTION
+        // =============================
+        function handleExport() {
+            const form = document.getElementById('bulk-form');
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'export';
+            input.value = '1';
+            form.appendChild(input);
+            form.submit();
+        }
 
-        function showDeleteModal(id, name) {
-            deleteId = id;
-            document.getElementById('delete-event-name').textContent =
-                `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+        // =============================
+        // BULK DELETE MODAL
+        // =============================
+        function showBulkDeleteModal() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            const count = checkboxes.length;
+
+            if (count === 0) {
+                return;
+            }
+
+            // Get names of selected events
+            const selectedNames = [];
+            checkboxes.forEach(cb => {
+                const row = cb.closest('tr');
+                const name = row.getAttribute('data-name');
+                if (name) selectedNames.push(name);
+            });
+
+            const deleteText = document.getElementById('delete-event-text');
+            
+            if (count === 1) {
+                deleteText.textContent = `Are you sure you want to delete "${selectedNames[0]}"? This action cannot be undone.`;
+            } else if (count <= 3) {
+                deleteText.textContent = `Are you sure you want to delete these ${count} events: ${selectedNames.join(', ')}? This action cannot be undone.`;
+            } else {
+                deleteText.textContent = `Are you sure you want to delete ${count} events? This action cannot be undone.`;
+            }
+
             document.getElementById('delete-overlay').style.display = 'flex';
         }
 
         function hideDeleteModal() {
             document.getElementById('delete-overlay').style.display = 'none';
-            deleteId = null;
         }
 
         document.getElementById('delete-close').onclick = hideDeleteModal;
         document.getElementById('delete-cancel').onclick = hideDeleteModal;
 
         document.getElementById('delete-confirm').onclick = function() {
-            if (deleteId) {
-                window.location.href = "?id=" + encodeURIComponent(deleteId);
-            }
+            const form = document.getElementById('bulk-form');
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'bulk_delete';
+            input.value = '1';
+            form.appendChild(input);
+            form.submit();
         };
 
         // Close modal on outside click
@@ -527,27 +726,88 @@ $result = $conn->query("SELECT * FROM events");
         });
 
         // =============================
-        // LIVE SEARCH (AJAX)
+        // SELECT ALL / DESELECT ALL
+        // =============================
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('select-all');
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            const rows = document.querySelectorAll('.data-row');
+
+            checkboxes.forEach((checkbox, index) => {
+                if (rows[index] && rows[index].style.display !== 'none') {
+                    checkbox.checked = selectAllCheckbox.checked;
+                    if (selectAllCheckbox.checked) {
+                        rows[index].classList.add('selected');
+                    } else {
+                        rows[index].classList.remove('selected');
+                    }
+                }
+            });
+            updateBulkActions();
+        }
+
+        // =============================
+        // UPDATE BULK ACTION BUTTONS
+        // =============================
+        function updateBulkActions() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+            const selectedCount = document.getElementById('selected-count');
+            const selectAllCheckbox = document.getElementById('select-all');
+            const visibleCheckboxes = Array.from(document.querySelectorAll('.row-checkbox')).filter(cb => {
+                return cb.closest('tr').style.display !== 'none';
+            });
+
+            selectedCount.textContent = checkboxes.length;
+            bulkDeleteBtn.disabled = checkboxes.length === 0;
+
+            // Update select-all checkbox state
+            const checkedVisible = Array.from(checkboxes).filter(cb => cb.closest('tr').style.display !== 'none').length;
+            if (checkedVisible === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedVisible === visibleCheckboxes.length && visibleCheckboxes.length > 0) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
+
+            // Highlight selected rows
+            document.querySelectorAll('.data-row').forEach(row => {
+                const checkbox = row.querySelector('.row-checkbox');
+                if (checkbox && checkbox.checked) {
+                    row.classList.add('selected');
+                } else {
+                    row.classList.remove('selected');
+                }
+            });
+        }
+
+        // =============================
+        // LIVE SEARCH
         // =============================
         const searchInput = document.getElementById('liveSearch');
         const tableData = document.getElementById('tableData');
         const clearBtn = document.getElementById('clearSearch');
-        const noDataRow = document.getElementById('no-data-row');
+        const noSearchRow = document.getElementById('no-search-row');
 
         function escapeRegExp(string) {
             return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
         function resetTable() {
-            const rows = tableData.getElementsByTagName('tr');
+            const rows = tableData.getElementsByClassName('data-row');
             for (let i = 0; i < rows.length; i++) {
                 rows[i].style.display = '';
                 const cells = rows[i].getElementsByTagName('td');
-                for (let c = 0; c < cells.length - 3; c++) { // only data columns
+                for (let c = 1; c < cells.length - 1; c++) {
                     cells[c].innerHTML = cells[c].textContent;
                 }
             }
-            noDataRow.style.display = 'none';
+            if (noSearchRow) noSearchRow.style.display = 'none';
+            updateBulkActions();
         }
 
         searchInput.addEventListener('input', function() {
@@ -559,15 +819,14 @@ $result = $conn->query("SELECT * FROM events");
                 return;
             }
 
-            const rows = tableData.getElementsByTagName('tr');
+            const rows = tableData.getElementsByClassName('data-row');
             let visibleCount = 0;
 
             for (let i = 0; i < rows.length; i++) {
-                if (rows[i] === noDataRow) continue;
                 const cells = rows[i].getElementsByTagName('td');
                 let rowMatches = false;
 
-                for (let c = 0; c < cells.length - 3; c++) { // only data columns
+                for (let c = 1; c < cells.length - 1; c++) {
                     const cellText = cells[c].textContent;
                     const regex = new RegExp(`(${escapeRegExp(value)})`, 'gi');
                     const highlighted = cellText.replace(regex, '<span class="highlight">$1</span>');
@@ -578,19 +837,55 @@ $result = $conn->query("SELECT * FROM events");
 
                 rows[i].style.display = rowMatches ? '' : 'none';
                 if (rowMatches) visibleCount++;
+
+                const checkbox = rows[i].querySelector('.row-checkbox');
+                if (!rowMatches && checkbox && checkbox.checked) {
+                    checkbox.checked = false;
+                }
             }
 
-            noDataRow.style.display = visibleCount === 0 ? '' : 'none';
+            if (noSearchRow) {
+                noSearchRow.style.display = visibleCount === 0 ? '' : 'none';
+            }
+            updateBulkActions();
         });
 
-        // Clear button
+        // Clear button click handler
         clearBtn.addEventListener('click', function() {
             searchInput.value = '';
             clearBtn.style.display = 'none';
             resetTable();
             searchInput.focus();
         });
+
+        // Hide clear button when input loses focus and is empty
+        searchInput.addEventListener('blur', function() {
+            if (!this.value.trim()) {
+                clearBtn.style.display = 'none';
+            }
+        });
+
+        // Row click to select
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('.data-row');
+
+            rows.forEach(row => {
+                row.addEventListener('click', function(e) {
+                    // Don't toggle if clicking on action buttons, links, or checkbox
+                    if (e.target.closest('a') || e.target.closest('i.fa-edit') || e.target.type === 'checkbox') {
+                        return;
+                    }
+
+                    const checkbox = this.querySelector('.row-checkbox');
+                    if (checkbox && this.style.display !== 'none') {
+                        checkbox.checked = !checkbox.checked;
+                        updateBulkActions();
+                    }
+                });
+            });
+        });
     </script>
+
     <?php include '../footer.php'; ?>
 </body>
 

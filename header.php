@@ -108,13 +108,6 @@ $base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '..
     </nav>
 
     <div class="header-right">
-        <?php if (isset($showExport) && $showExport === true): ?>
-            <form method="post" class="export-form">
-                <button type="submit" name="export" class="btn-primary btn-small">
-                    Export
-                </button>
-            </form>
-        <?php endif; ?>
 
         <div id="user-avatar" class="user-avatar">
             <?php echo htmlspecialchars($userInitial, ENT_QUOTES, 'UTF-8'); ?>
