@@ -6,7 +6,7 @@ if (!isset($_SESSION['email'])) {
     header('Location: ../login.php');
     exit;
 }
-
+//nhsnsns
 // Auto logout after 50 minutes
 $timeout = 50 * 60;
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout) {
