@@ -50,8 +50,8 @@ if (isset($_POST['export'])) {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=employees_export_' . date('Y-m-d_His') . '.csv');
     $output = fopen('php://output', 'w');
-    fputcsv($output, ['Full Name', 'Department ID', 'DOB', 'Gender', 'Email', 'Phone', 'Address', 'Designation', 'Salary', 'Joining Date', 'Aadhar/ID']);
-    
+    fputcsv($output, ['Full Name', 'Department ID', 'DOB', 'Gender', 'Email', 'Country Code', 'Phone', 'Address', 'Designation', 'Currency', 'Salary', 'Joining Date', 'Aadhar']);
+
     while ($row = $result->fetch_assoc()) {
         fputcsv($output, [
             $row['ename'],
@@ -59,15 +59,53 @@ if (isset($_POST['export'])) {
             $row['dob'],
             $row['gender'],
             $row['email'],
+            $row['country_code'] ?? '+91',
             $row['pnumber'],
             $row['address'],
             $row['designation'],
+            $row['currency'] ?? '₹',
             $row['salary'],
             $row['joining_date'],
             $row['aadhar']
         ]);
     }
     fclose($output);
+    exit;
+}
+
+// ---------------------------
+// UPDATE EMPLOYEE
+// ---------------------------
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POST['export']) && !isset($_POST['bulk_delete'])) {
+    $id = $_POST['id'];
+    $country_code = htmlspecialchars(trim($_POST['country_code'] ?? '+91'), ENT_QUOTES, 'UTF-8');
+    $currency = htmlspecialchars(trim($_POST['currency'] ?? '₹'), ENT_QUOTES, 'UTF-8');
+
+    $stmt = $conn->prepare(
+        "UPDATE employees
+         SET department_id=?, ename=?, dob=?, gender=?, email=?, country_code=?, pnumber=?, address=?, designation=?, currency=?, salary=?, joining_date=?, aadhar=?
+         WHERE id=?"
+    );
+    $stmt->bind_param(
+        "ssssssssssssss",
+        $_POST['department_id'],
+        $_POST['ename'],
+        $_POST['dob'],
+        $_POST['gender'],
+        $_POST['email'],
+        $country_code,
+        $_POST['pnumber'],
+        $_POST['address'],
+        $_POST['designation'],
+        $currency,
+        $_POST['salary'],
+        $_POST['joining_date'],
+        $_POST['aadhar'],
+        $id
+    );
+    $stmt->execute();
+    $stmt->close();
+    header("Location: get.php");
     exit;
 }
 
@@ -461,6 +499,7 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
                 opacity: 0;
                 transform: translateY(-20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -540,7 +579,7 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
                     <i class="fas fa-chevron-left"></i> Home
                 </a>
             </h1>
-            
+
             <div class="header-right">
                 <a href="form.php" class="btn btn-add">
                     <i class="fas fa-plus"></i> Add New Data
@@ -551,7 +590,7 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
                 <button type="button" class="btn btn-export" onclick="handleExport()">
                     <i class="fas fa-download"></i> Export Data
                 </button>
-                
+
                 <div class="search-wrapper">
                     <i class="fas fa-search search-icon"></i>
                     <input type="search" id="liveSearch" class="search-box" placeholder="Search Employee..." autocomplete="off" />
@@ -577,7 +616,7 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
                         <th>Designation</th>
                         <th>Salary</th>
                         <th>Joining Date</th>
-                        <th>Aadhar Number</th>
+                        <th>Aadhar</th>
                         <th>Update</th>
                     </tr>
                 </thead>
@@ -587,6 +626,10 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
                         while ($row = $result->fetch_assoc()) {
                             $id = htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8');
                             $ename = htmlspecialchars($row['ename'], ENT_QUOTES, 'UTF-8');
+                            $country_code = htmlspecialchars($row['country_code'] ?? '+91', ENT_QUOTES, 'UTF-8');
+                            $phone = htmlspecialchars($row['pnumber'], ENT_QUOTES, 'UTF-8');
+                            $currency = htmlspecialchars($row['currency'] ?? '₹', ENT_QUOTES, 'UTF-8');
+                            $salary = htmlspecialchars($row['salary'], ENT_QUOTES, 'UTF-8');
 
                             echo "<tr class='data-row' data-id='{$id}' data-name='{$ename}'>";
                             echo "<td class='checkbox-cell'><input type='checkbox' name='selected_ids[]' value='{$id}' class='row-checkbox' onchange='updateBulkActions()'></td>";
@@ -595,17 +638,17 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
                             echo "<td>" . htmlspecialchars($row['dob']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['gender']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['pnumber']) . "</td>";
+                            echo "<td>{$country_code} {$phone}</td>";
                             echo "<td>" . htmlspecialchars($row['address']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['designation']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['salary']) . "</td>";
+                            echo "<td>{$currency} {$salary}</td>";
                             echo "<td>" . htmlspecialchars($row['joining_date']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['aadhar']) . "</td>";
                             echo "<td><a href='update.php?id={$id}'><i class='fas fa-edit'></i></a></td>";
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr id='no-data-row'><td colspan='13' style='text-align:center; padding: 20px;'>No data found.</td></tr>";
+                        echo "<tr id='no-data-row'><td colspan='13' style='text-align:center; padding: 20px;'>No data found. <a href='form.php' style='color: #2563eb;'><i class='fas fa-plus'></i> Add your first employee</a></td></tr>";
                     }
                     $conn->close();
                     ?>
@@ -664,7 +707,7 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
             });
 
             const deleteText = document.getElementById('delete-emp-text');
-            
+
             if (count === 1) {
                 deleteText.textContent = `Are you sure you want to delete "${selectedNames[0]}"? This action cannot be undone.`;
             } else if (count <= 3) {
@@ -844,6 +887,7 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
             rows.forEach(row => {
                 row.addEventListener('click', function(e) {
                     if (e.target.closest('a') || e.target.closest('i.fa-edit') || e.target.type === 'checkbox') {
+
                         return;
                     }
 

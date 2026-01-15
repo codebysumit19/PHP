@@ -72,6 +72,13 @@ unset($_SESSION['form_data']);
             color: #111827;
         }
 
+        /* Red Asterisk for Required Fields */
+        .required {
+            color: #dc2626;
+            margin-left: 3px;
+            font-weight: 700;
+        }
+
         /* Inline Error Message */
         .field-error {
             background: #fef2f2;
@@ -245,9 +252,9 @@ unset($_SESSION['form_data']);
     <div class="main-wrapper">
         <div class="event-form-card">
             <h1 class="event-form-title">Event Form</h1>
-            <form method="POST" action="send.php">
+            <form method="POST" action="send.php" novalidate>
                 <div class="field-group">
-                    <label for="department_id">Department ID:</label>
+                    <label for="department_id">Department ID:<span class="required">*</span></label>
                     <input type="text" id="department_id" name="department_id"
                            class="<?php echo ($errorField === 'department_id') ? 'input-error' : ''; ?>"
                            maxlength="100" 
@@ -261,7 +268,7 @@ unset($_SESSION['form_data']);
                 </div>
 
                 <div class="field-group">
-                    <label for="name">Event Name:</label>
+                    <label for="name">Event Name:<span class="required">*</span></label>
                     <input type="text" id="name" name="name"
                            class="<?php echo ($errorField === 'name') ? 'input-error' : ''; ?>"
                            pattern="[A-Za-z\s]+"
@@ -276,13 +283,13 @@ unset($_SESSION['form_data']);
                 </div>
 
                 <div class="field-group">
-                    <label for="address">Event Address:</label>
+                    <label for="address">Event Address:<span class="required">*</span></label>
                     <input type="text" id="address" name="address" 
                            value="<?php echo htmlspecialchars($formData['address'] ?? '', ENT_QUOTES); ?>" required>
                 </div>
 
                 <div class="field-group">
-                    <label for="date">Event Date:</label>
+                    <label for="date">Event Date:<span class="required">*</span></label>
                     <input type="date" id="date" name="date" 
                            class="<?php echo ($errorField === 'date') ? 'input-error' : ''; ?>"
                            value="<?php echo htmlspecialchars($formData['date'] ?? '', ENT_QUOTES); ?>" required>
@@ -295,25 +302,25 @@ unset($_SESSION['form_data']);
                 </div>
 
                 <div class="field-group">
-                    <label for="stime">Event Start Time:</label>
+                    <label for="stime">Event Start Time:<span class="required">*</span></label>
                     <input type="time" id="stime" name="stime" 
                            value="<?php echo htmlspecialchars($formData['stime'] ?? '', ENT_QUOTES); ?>" required>
                 </div>
 
                 <div class="field-group">
-                    <label for="etime">Event End Time:</label>
+                    <label for="etime">Event End Time:<span class="required">*</span></label>
                     <input type="time" id="etime" name="etime" 
                            value="<?php echo htmlspecialchars($formData['etime'] ?? '', ENT_QUOTES); ?>" required>
                 </div>
 
                 <div class="field-group">
-                    <label for="type">Type of Event:</label>
+                    <label for="type">Type of Event:<span class="required">*</span></label>
                     <input type="text" id="type" name="type" 
                            value="<?php echo htmlspecialchars($formData['type'] ?? '', ENT_QUOTES); ?>" required>
                 </div>
 
                 <div class="field-group">
-                    <label>Event Happened:</label>
+                    <label>Event Happened:<span class="required">*</span></label>
                     <div class="radio-group">
                         <label>
                             <input type="radio" name="happend" value="Yes" 
@@ -332,35 +339,118 @@ unset($_SESSION['form_data']);
     </div>
 
     <script>
-        // Auto-hide field error after 5 seconds
-        const fieldErrors = document.querySelectorAll('.field-error');
-        if (fieldErrors.length > 0) {
-            setTimeout(() => {
-                fieldErrors.forEach(error => {
-                    error.style.opacity = '0';
-                    error.style.transition = 'opacity 0.3s ease';
-                    setTimeout(() => {
-                        error.style.display = 'none';
-                        // Remove error class from input
-                        const input = error.previousElementSibling;
-                        if (input) {
-                            input.classList.remove('input-error');
-                        }
-                    }, 300);
-                });
-            }, 5000);
-
-            // Scroll to error field
-            const errorInput = document.querySelector('.input-error');
-            if (errorInput) {
-                errorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                errorInput.focus();
+    // Form submission validation with custom inline errors
+    const form = document.querySelector('form');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Remove all previous custom errors
+            document.querySelectorAll('.custom-required-error').forEach(err => err.remove());
+            
+            // Check all required fields and show custom error on first empty one
+            const requiredFields = form.querySelectorAll('[required]');
+            let firstEmptyField = null;
+            
+            requiredFields.forEach(field => {
+                // Remove previous error styling
+                field.classList.remove('input-error');
+                
+                const isEmpty = field.value.trim() === '' || 
+                               (field.type === 'radio' && !form.querySelector(`input[name="${field.name}"]:checked`));
+                
+                if (isEmpty && !firstEmptyField) {
+                    firstEmptyField = field;
+                }
+            });
+            
+            if (firstEmptyField) {
+                e.preventDefault();
+                
+                // Add error styling
+                firstEmptyField.classList.add('input-error');
+                
+                // Create custom error message
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'field-error custom-required-error';
+                errorDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span class="field-error-text">This field is required!</span>
+                `;
+                
+                // Insert error in field-group
+                const fieldGroup = firstEmptyField.closest('.field-group');
+                if (fieldGroup) {
+                    fieldGroup.appendChild(errorDiv);
+                }
+                
+                // Scroll to the field
+                firstEmptyField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstEmptyField.focus();
+                
+                // Remove error when user starts typing
+                firstEmptyField.addEventListener('input', function() {
+                    this.classList.remove('input-error');
+                    const customError = fieldGroup.querySelector('.custom-required-error');
+                    if (customError) customError.remove();
+                }, { once: true });
+                
+                // For radio buttons
+                if (firstEmptyField.type === 'radio') {
+                    const radioGroup = form.querySelectorAll(`input[name="${firstEmptyField.name}"]`);
+                    radioGroup.forEach(radio => {
+                        radio.addEventListener('change', function() {
+                            radioGroup.forEach(r => r.classList.remove('input-error'));
+                            const customError = fieldGroup.querySelector('.custom-required-error');
+                            if (customError) customError.remove();
+                        }, { once: true });
+                    });
+                }
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    if (errorDiv && errorDiv.parentNode) {
+                        errorDiv.style.opacity = '0';
+                        errorDiv.style.transition = 'opacity 0.3s ease';
+                        setTimeout(() => {
+                            if (errorDiv.parentNode) errorDiv.remove();
+                            firstEmptyField.classList.remove('input-error');
+                        }, 300);
+                    }
+                }, 5000);
+                
+                return false;
             }
+        });
+    }
+
+    // Auto-hide server-side field errors after 5 seconds
+    const serverErrors = document.querySelectorAll('.field-error:not(.custom-required-error)');
+    if (serverErrors.length > 0) {
+        setTimeout(() => {
+            serverErrors.forEach(error => {
+                error.style.opacity = '0';
+                error.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    error.style.display = 'none';
+                    const input = error.previousElementSibling;
+                    if (input) {
+                        input.classList.remove('input-error');
+                    }
+                }, 300);
+            });
+        }, 5000);
+
+        // Scroll to server error field
+        const errorInput = document.querySelector('.input-error');
+        if (errorInput) {
+            errorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            errorInput.focus();
         }
-    </script>
+    }
+</script>
+
 
     <?php include '../footer.php'; ?>
 </body>
 
 </html>
-

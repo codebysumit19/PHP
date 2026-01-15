@@ -6,7 +6,7 @@ if (!isset($_SESSION['email'])) {
     header('Location: ../login.php');
     exit;
 }
-//nhsnsns
+
 // Auto logout after 50 minutes
 $timeout = 50 * 60;
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout) {
@@ -50,13 +50,14 @@ if (isset($_POST['export'])) {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=departments_export_' . date('Y-m-d_His') . '.csv');
     $output = fopen('php://output', 'w');
-    fputcsv($output, ['Department Name', 'Department ID', 'Email', 'Contact Number', 'Employees', 'Responsibilities', 'Annual Budget', 'Status', 'Description']);
+    fputcsv($output, ['Department Name', 'Department ID', 'Email', 'Country Code', 'Contact Number', 'Employees', 'Responsibilities', 'Annual Budget', 'Status', 'Description']);
     
     while ($row = $result->fetch_assoc()) {
         fputcsv($output, [
             $row['dname'],
             $row['department_id'],
             $row['email'],
+            $row['country_code'] ?? '+91',
             $row['number'],
             $row['nemployees'],
             $row['resp'],
@@ -66,6 +67,29 @@ if (isset($_POST['export'])) {
         ]);
     }
     fclose($output);
+    exit;
+}
+
+// ---------------------------
+// UPDATE DEPARTMENT
+// ---------------------------
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POST['export']) && !isset($_POST['bulk_delete'])) {
+    $id = $_POST['id'];
+    $country_code = htmlspecialchars(trim($_POST['country_code'] ?? '+91'), ENT_QUOTES, 'UTF-8');
+    
+    $stmt = $conn->prepare(
+        "UPDATE departments
+         SET dname=?, email=?, country_code=?, number=?, resp=?, budget=?, status=?, description=?
+         WHERE department_id=?"
+    );
+    $stmt->bind_param(
+        "sssssssss",
+        $_POST['dname'], $_POST['email'], $country_code, $_POST['number'], 
+        $_POST['resp'], $_POST['budget'], $_POST['status'], $_POST['description'], $id
+    );
+    $stmt->execute();
+    $stmt->close();
+    header("Location: get.php");
     exit;
 }
 
@@ -475,7 +499,8 @@ $result = $conn->query("SELECT * FROM departments ORDER BY dname ASC");
             }
         }
 
-        @media (max-width:1200px) {
+        @media (
+            max-width:1200px) {
             .table-header {
                 flex-wrap: wrap;
             }
@@ -509,7 +534,7 @@ $result = $conn->query("SELECT * FROM departments ORDER BY dname ASC");
             .table-container td {
                 padding: 8px 6px;
                 font-size: 0.8rem;
-                            }
+            }
 
             .delete-modal {
                 min-width: 280px;
@@ -583,13 +608,15 @@ $result = $conn->query("SELECT * FROM departments ORDER BY dname ASC");
                         while ($row = $result->fetch_assoc()) {
                             $id = htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8');
                             $dname = htmlspecialchars($row['dname'], ENT_QUOTES, 'UTF-8');
+                            $country_code = htmlspecialchars($row['country_code'] ?? '+91', ENT_QUOTES, 'UTF-8');
+                            $contact = htmlspecialchars($row['number'], ENT_QUOTES, 'UTF-8');
 
                             echo "<tr class='data-row' data-id='{$id}' data-name='{$dname}'>";
                             echo "<td class='checkbox-cell'><input type='checkbox' name='selected_ids[]' value='{$id}' class='row-checkbox' onchange='updateBulkActions()'></td>";
                             echo "<td>{$dname}</td>";
                             echo "<td>" . htmlspecialchars($row['department_id']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['number']) . "</td>";
+                            echo "<td>{$country_code} {$contact}</td>";
                             echo "<td>" . htmlspecialchars($row['nemployees']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['resp']) . "</td>";
                             echo "<td>" . htmlspecialchars($row['budget']) . "</td>";
@@ -599,7 +626,7 @@ $result = $conn->query("SELECT * FROM departments ORDER BY dname ASC");
                             echo "</tr>";
                         }
                     } else {
-                        echo "<tr id='no-data-row'><td colspan='11' style='text-align:center; padding: 20px;'>No data found.</td></tr>";
+                        echo "<tr id='no-data-row'><td colspan='11' style='text-align:center; padding: 20px;'>No data found. <a href='form.php' style='color: #2563eb;'><i class='fas fa-plus'></i> Add your first department</a></td></tr>";
                     }
                     $conn->close();
                     ?>
@@ -855,3 +882,4 @@ $result = $conn->query("SELECT * FROM departments ORDER BY dname ASC");
 </body>
 
 </html>
+

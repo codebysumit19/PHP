@@ -5,7 +5,7 @@ if (!isset($_SESSION['email'])) {
     exit;
 }
 
-// Auto logout after 50 minutes (3000 seconds) of inactivity
+// Auto logout after 50 minutes
 $timeout = 50 * 60;
 
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout) {
@@ -36,234 +36,391 @@ if (!$row) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Update Event</title>
-<link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
-<style>
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+    <meta charset="UTF-8">
+    <title>Update Event</title>
+    <link rel="icon" type="image/png" href="../fi-snsuxx-php-logo.jpg">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #e8f5e9, #ffffff);
-    min-height: 100vh;
-}
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #e8f5e9, #ffffff);
+            min-height: 100vh;
+        }
 
-.main-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 24px 16px 80px;
-}
+        .main-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 24px 16px 80px;
+        }
 
-.event-form-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    padding: 28px 24px;
-    width: 100%;
-    max-width: 600px;
-}
+        .event-form-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 600px;
+        }
 
-.event-form-title {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #111827;
-}
+        .event-form-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #111827;
+        }
 
-.field-group {
-    margin-bottom: 16px;
-}
+        /* Red Asterisk for Required Fields */
+        .required {
+            color: #dc2626;
+            margin-left: 2px;
+            font-weight: 400;
+        }
 
-.field-group label {
-    display: block;
-    font-size: 0.95rem;
-    margin-bottom: 6px;
-    color: #111827;
-    font-weight: 600;
-}
+        .field-group {
+            margin-bottom: 16px;
+        }
 
-.field-group input[type="text"],
-.field-group input[type="date"],
-.field-group input[type="time"] {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
+        .field-group label {
+            display: block;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .field-group input[type="text"],
+        .field-group input[type="date"],
+        .field-group input[type="time"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: #f9fafb;
+            font-size: 0.95rem;
+            font-family: Arial, sans-serif;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .field-group input:focus {
+            outline: none;
+            border-color: #68A691;
+            background: #fff;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 6px;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 400;
+            cursor: pointer;
+        }
+
+        .radio-group input[type="radio"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-save {
+            background: #68A691;
+            color: #fff;
+            border: none;
+        }
+
+        .btn-save:hover {
+            background: #4a8970;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(104, 166, 145, 0.3);
+        }
+
+        .btn-cancel {
+            background: #f3f4f6;
+            color: #111827;
+            border: 1px solid #d1d5db;
+            display: inline-block;
+        }
+
+        .btn-cancel:hover {
+            background: #e5e7eb;
+        }
+
+        /* Inline Error Message */
+.field-error {
+    background: #fef2f2;
+    border-left: 4px solid #dc2626;
     border-radius: 6px;
-    background: #f9fafb;
-    font-size: 0.95rem;
-    transition: border-color 0.2s, background 0.2s;
-}
-
-.field-group input:focus {
-    outline: none;
-    border-color: #68A691;
-    background: #fff;
-}
-
-.radio-group {
-    display: flex;
-    gap: 20px;
+    padding: 10px 12px;
     margin-top: 6px;
-}
-
-.radio-group label {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-weight: 400;
-    cursor: pointer;
+    gap: 8px;
+    animation: slideDown 0.3s ease-out;
 }
 
-.radio-group input[type="radio"] {
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
+.field-error i {
+    color: #dc2626;
+    font-size: 16px;
 }
 
-.form-buttons {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
+.field-error-text {
+    color: #dc2626;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
-.btn {
-    flex: 1;
-    padding: 12px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 1rem;
-    text-align: center;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
+.input-error {
+    border-color: #dc2626 !important;
+    background: #fef2f2 !important;
 }
 
-.btn-save {
-    background: #68A691;
-    color: #fff;
-    border: none;
-}
-
-.btn-save:hover {
-    background: #4a8970;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(104, 166, 145, 0.3);
-}
-
-.btn-cancel {
-    background: #f3f4f6;
-    color: #111827;
-    border: 1px solid #d1d5db;
-    text-decoration: none;
-    display: inline-block;
-}
-
-.btn-cancel:hover {
-    background: #e5e7eb;
-}
-
-/* Responsive */
-/* Ensure buttons are equal width and responsive */
-@media (max-width: 480px) {
-    .form-buttons {
-        flex-direction: column;
-        gap: 10px;
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-@media (max-width: 768px) {
-    .main-wrapper { padding: 20px 12px 60px; }
-    .event-form-card { padding: 20px 16px; }
-    .event-form-title { font-size: 1.5rem; }
-}
 
-@media (max-width: 480px) {
-    .main-wrapper { padding: 16px 12px 50px; }
-    .event-form-card { padding: 16px 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
-    .event-form-title { font-size: 1.3rem; margin-bottom: 16px; }
-    .btn { font-size: 1rem; padding: 10px; }
-}
-</style>
+        @media (max-width: 768px) {
+            body {
+                padding-top: 80px;
+            }
+
+            .main-wrapper {
+                padding: 20px 12px 60px;
+            }
+
+            .event-form-card {
+                padding: 20px 16px;
+            }
+
+            .event-form-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding-top: 100px;
+            }
+
+            .main-wrapper {
+                padding: 16px 12px 50px;
+            }
+
+            .event-form-card {
+                padding: 16px 12px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            }
+
+            .event-form-title {
+                font-size: 1.3rem;
+                margin-bottom: 16px;
+            }
+
+            .btn {
+                font-size: 1rem;
+                padding: 10px;
+            }
+
+            .form-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-<?php
-$pageTitle = 'Update Event Data';
-$showExport = false;
-include '../header.php';
-?>
+    <?php
+    $pageTitle = 'Update Event Data';
+    $showExport = false;
+    include '../header.php';
+    ?>
 
-<div class="main-wrapper">
-    <div class="event-form-card">
-        <h1 class="event-form-title">Update Event Data</h1>
-        <form method="POST" action="get.php">
+    <div class="main-wrapper">
+        <div class="event-form-card">
+            <h1 class="event-form-title">Update Event Data</h1>
+            <form method="POST" action="get.php" novalidate>
 
-            <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8'); ?>">
 
-            <div class="field-group">
-                <label for="department_id">Department ID</label>
-                <input type="text" name="department_id" id="department_id"
-                       value="<?php echo htmlspecialchars($row['department_id'], ENT_QUOTES, 'UTF-8'); ?>" maxlength="100" required>
-            </div>
-
-            <div class="field-group">
-                <label for="name">Event Name</label>
-                <input type="text" name="name" id="name"
-                       value="<?php echo htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8'); ?>" required>
-            </div>
-
-            <div class="field-group">
-                <label for="address">Address</label>
-                <input type="text" name="address" id="address"
-                       value="<?php echo htmlspecialchars($row['address'], ENT_QUOTES, 'UTF-8'); ?>" required>
-            </div>
-
-            <div class="field-group">
-                <label for="date">Date</label>
-                <input type="date" name="date" id="date"
-                       value="<?php echo htmlspecialchars($row['date'], ENT_QUOTES, 'UTF-8'); ?>" required>
-            </div>
-
-            <div class="field-group">
-                <label for="stime">Start Time</label>
-                <input type="time" name="stime" id="stime"
-                       value="<?php echo htmlspecialchars($row['stime'], ENT_QUOTES, 'UTF-8'); ?>" required>
-            </div>
-
-            <div class="field-group">
-                <label for="etime">End Time</label>
-                <input type="time" name="etime" id="etime"
-                       value="<?php echo htmlspecialchars($row['etime'], ENT_QUOTES, 'UTF-8'); ?>" required>
-            </div>
-
-            <div class="field-group">
-                <label for="type">Type of Event</label>
-                <input type="text" name="type" id="type"
-                       value="<?php echo htmlspecialchars($row['type'], ENT_QUOTES, 'UTF-8'); ?>" required>
-            </div>
-
-            <div class="field-group">
-                <label>Event Happened</label>
-                <div class="radio-group">
-                    <label><input type="radio" name="happend" value="Yes" <?php if($row['happend']==='Yes') echo 'checked'; ?> required> Yes</label>
-                    <label><input type="radio" name="happend" value="No" <?php if($row['happend']==='No') echo 'checked'; ?> required> No</label>
+                <div class="field-group">
+                    <label for="department_id">Department ID: <span class="required">*</span></label>
+                    <input type="text" name="department_id" id="department_id"
+                        value="<?php echo htmlspecialchars($row['department_id'], ENT_QUOTES, 'UTF-8'); ?>" maxlength="100" required>
                 </div>
-            </div>
 
-            <div class="form-buttons">
-                <button type="submit" class="btn btn-save">Save Changes</button>
-                <a href="get.php" class="btn btn-cancel">Cancel</a>
-            </div>
-        </form>
+                <div class="field-group">
+                    <label for="name">Event Name: <span class="required">*</span></label>
+                    <input type="text" name="name" id="name"
+                        value="<?php echo htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="address">Address: <span class="required">*</span></label>
+                    <input type="text" name="address" id="address"
+                        value="<?php echo htmlspecialchars($row['address'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="date">Date: <span class="required">*</span></label>
+                    <input type="date" name="date" id="date"
+                        value="<?php echo htmlspecialchars($row['date'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="stime">Start Time: <span class="required">*</span></label>
+                    <input type="time" name="stime" id="stime"
+                        value="<?php echo htmlspecialchars($row['stime'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="etime">End Time: <span class="required">*</span></label>
+                    <input type="time" name="etime" id="etime"
+                        value="<?php echo htmlspecialchars($row['etime'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="type">Type of Event: <span class="required">*</span></label>
+                    <input type="text" name="type" id="type"
+                        value="<?php echo htmlspecialchars($row['type'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                </div>
+
+                <div class="field-group">
+                    <label>Event Happened: <span class="required">*</span></label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="happend" value="Yes" <?php if($row['happend']==='Yes') echo 'checked'; ?> required> Yes</label>
+                        <label><input type="radio" name="happend" value="No" <?php if($row['happend']==='No') echo 'checked'; ?> required> No</label>
+                    </div>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-save">Save Changes</button>
+                    <a href="get.php" class="btn btn-cancel">Cancel</a>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<?php include '../footer.php'; ?>
+    <script>
+    // Form submission validation with custom inline errors
+    const form = document.querySelector('form');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Remove all previous custom errors
+            document.querySelectorAll('.custom-required-error').forEach(err => err.remove());
+            
+            // Check all required fields
+            const requiredFields = form.querySelectorAll('[required]');
+            let firstEmptyField = null;
+            
+            requiredFields.forEach(field => {
+                field.classList.remove('input-error');
+                
+                const isEmpty = field.value.trim() === '' || 
+                               (field.type === 'radio' && !form.querySelector(`input[name="${field.name}"]:checked`));
+                
+                if (isEmpty && !firstEmptyField) {
+                    firstEmptyField = field;
+                }
+            });
+            
+            if (firstEmptyField) {
+                e.preventDefault();
+                
+                firstEmptyField.classList.add('input-error');
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'field-error custom-required-error';
+                errorDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span class="field-error-text">This field is required!</span>
+                `;
+                
+                const fieldGroup = firstEmptyField.closest('.field-group');
+                if (fieldGroup) {
+                    fieldGroup.appendChild(errorDiv);
+                }
+                
+                firstEmptyField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstEmptyField.focus();
+                
+                firstEmptyField.addEventListener('input', function() {
+                    this.classList.remove('input-error');
+                    const customError = fieldGroup.querySelector('.custom-required-error');
+                    if (customError) customError.remove();
+                }, { once: true });
+                
+                // For radio buttons
+                if (firstEmptyField.type === 'radio') {
+                    const radioGroup = form.querySelectorAll(`input[name="${firstEmptyField.name}"]`);
+                    radioGroup.forEach(radio => {
+                        radio.addEventListener('change', function() {
+                            radioGroup.forEach(r => r.classList.remove('input-error'));
+                            const customError = fieldGroup.querySelector('.custom-required-error');
+                            if (customError) customError.remove();
+                        }, { once: true });
+                    });
+                }
+                
+                setTimeout(() => {
+                    if (errorDiv && errorDiv.parentNode) {
+                        errorDiv.style.opacity = '0';
+                        errorDiv.style.transition = 'opacity 0.3s ease';
+                        setTimeout(() => {
+                            if (errorDiv.parentNode) errorDiv.remove();
+                            firstEmptyField.classList.remove('input-error');
+                        }, 300);
+                    }
+                }, 5000);
+                
+                return false;
+            }
+        });
+    }
+</script>
+
+
+    <?php include '../footer.php'; ?>
 </body>
+
 </html>

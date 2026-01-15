@@ -72,6 +72,13 @@ unset($_SESSION['form_data']);
             color: #111827;
         }
 
+        /* Red Asterisk for Required Fields */
+        .required {
+            color: #dc2626;
+            margin-left: 2px;
+            font-weight: 400;
+        }
+
         /* Inline Error Message */
         .field-error {
             background: #fef2f2;
@@ -114,19 +121,14 @@ unset($_SESSION['form_data']);
         
         form h2 {
             font-size: 0.95rem;
-            margin-bottom: 16px;
+            margin-bottom: 6px;
             color: #111827;
             font-weight: 600;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+            display: block;
         }
         
-        form h2 input[type="text"],
-        form h2 input[type="email"],
-        form h2 input[type="tel"],
-        form h2 input[type="number"],
-        form h2 textarea {
+        form h2 + input,
+        form h2 + textarea {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid #d1d5db;
@@ -135,19 +137,17 @@ unset($_SESSION['form_data']);
             font-size: 0.95rem;
             font-family: Arial, sans-serif;
             transition: border-color 0.2s, background 0.2s;
+            margin-bottom: 16px;
         }
         
-        form h2 input[type="text"]:focus,
-        form h2 input[type="email"]:focus,
-        form h2 input[type="tel"]:focus,
-        form h2 input[type="number"]:focus,
-        form h2 textarea:focus {
+        form h2 + input:focus,
+        form h2 + textarea:focus {
             outline: none;
             border-color: #68A691;
             background: #ffffff;
         }
         
-        form h2 textarea {
+        textarea {
             min-height: 100px;
             resize: vertical;
         }
@@ -159,10 +159,11 @@ unset($_SESSION['form_data']);
             font-weight: 400;
             cursor: pointer;
             margin-right: 20px;
+            margin-top: 8px;
             font-size: 0.95rem;
         }
         
-        form h2 input[type="radio"] {
+        form h2 label input[type="radio"] {
             cursor: pointer;
             width: 16px;
             height: 16px;
@@ -192,6 +193,59 @@ unset($_SESSION['form_data']);
             transform: translateY(0);
         }
         
+
+        /* Phone Number Row */
+.phone-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.phone-row select {
+    width: 130px;
+    flex-shrink: 0;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #f9fafb;
+    font-size: 0.95rem;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111827' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    padding-right: 32px;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.phone-row select:focus {
+    outline: none;
+    border-color: #68A691;
+    background-color: #fff;
+}
+
+.phone-row input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #f9fafb;
+    font-size: 0.95rem;
+    font-family: Arial, sans-serif;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.phone-row input:focus {
+    outline: none;
+    border-color: #68A691;
+    background: #fff;
+}
+
+.phone-row input::placeholder {
+    color: #9ca3af;
+}
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             body {
@@ -252,118 +306,275 @@ unset($_SESSION['form_data']);
 
     <div class="main-wrapper">
         <div>
-            <form action="send.php" method="POST">
+            <form action="send.php" method="POST" novalidate>
+
                 <h1>Department Form</h1>
 
-                <h2>Department ID:
-                    <input type="text" name="department_id" placeholder="Enter Department ID"
-                        maxlength="100" 
-                        class="<?php echo ($errorField === 'department_id') ? 'input-error' : ''; ?>"
-                        value="<?php echo htmlspecialchars($formData['department_id'] ?? '', ENT_QUOTES); ?>" required>
-                    <?php if ($errorField === 'department_id'): ?>
-                        <div class="field-error">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
-                        </div>
-                    <?php endif; ?>
-                </h2>
+                <h2>Department ID: <span class="required">*</span></h2>
+                <input type="text" name="department_id" placeholder="Enter Department ID"
+                    maxlength="100" 
+                    class="<?php echo ($errorField === 'department_id') ? 'input-error' : ''; ?>"
+                    value="<?php echo htmlspecialchars($formData['department_id'] ?? '', ENT_QUOTES); ?>" required>
+                <?php if ($errorField === 'department_id'): ?>
+                    <div class="field-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
+                    </div>
+                <?php endif; ?>
 
-                <h2>Department Name:
-                    <input type="text" name="dname" placeholder="Enter Department" pattern="[A-Za-z\s]+"
-                        title="Only letters and spaces allowed" 
-                        class="<?php echo ($errorField === 'dname') ? 'input-error' : ''; ?>"
-                        value="<?php echo htmlspecialchars($formData['dname'] ?? '', ENT_QUOTES); ?>" required>
-                    <?php if ($errorField === 'dname'): ?>
-                        <div class="field-error">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
-                        </div>
-                    <?php endif; ?>
-                </h2>
+                <h2>Department Name: <span class="required">*</span></h2>
+                <input type="text" name="dname" placeholder="Enter Department" pattern="[A-Za-z\s]+"
+                    title="Only letters and spaces allowed" 
+                    class="<?php echo ($errorField === 'dname') ? 'input-error' : ''; ?>"
+                    value="<?php echo htmlspecialchars($formData['dname'] ?? '', ENT_QUOTES); ?>" required>
+                <?php if ($errorField === 'dname'): ?>
+                    <div class="field-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
+                    </div>
+                <?php endif; ?>
 
-                <h2>Email:
-                    <input type="email" name="email" placeholder="Enter Email" 
-                        class="<?php echo ($errorField === 'email') ? 'input-error' : ''; ?>"
-                        value="<?php echo htmlspecialchars($formData['email'] ?? '', ENT_QUOTES); ?>" required>
-                    <?php if ($errorField === 'email'): ?>
-                        <div class="field-error">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
-                        </div>
-                    <?php endif; ?>
-                </h2>
+                <h2>Email: <span class="required">*</span></h2>
+                <input type="email" name="email" placeholder="Enter Email" 
+                    class="<?php echo ($errorField === 'email') ? 'input-error' : ''; ?>"
+                    value="<?php echo htmlspecialchars($formData['email'] ?? '', ENT_QUOTES); ?>" required>
+                <?php if ($errorField === 'email'): ?>
+                    <div class="field-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
+                    </div>
+                <?php endif; ?>
 
-                <h2>Contact Number:
-                    <input type="tel" name="number" minlength="10" maxlength="13" placeholder="Enter Number" 
-                        class="<?php echo ($errorField === 'number') ? 'input-error' : ''; ?>"
-                        value="<?php echo htmlspecialchars($formData['number'] ?? '', ENT_QUOTES); ?>" required>
-                    <?php if ($errorField === 'number'): ?>
-                        <div class="field-error">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
-                        </div>
-                    <?php endif; ?>
-                                </h2>
+                <h2>Contact Number: <span class="required">*</span></h2>
+<div class="phone-row">
+    <select name="country_code" required>
+        <option value="+91" <?php echo (!isset($formData['country_code']) || $formData['country_code'] === '+91') ? 'selected' : ''; ?>>+91 (IN)</option>
+        <option value="+1" <?php echo (isset($formData['country_code']) && $formData['country_code'] === '+1') ? 'selected' : ''; ?>>+1 (US)</option>
+        <option value="+44" <?php echo (isset($formData['country_code']) && $formData['country_code'] === '+44') ? 'selected' : ''; ?>>+44 (UK)</option>
+        <option value="+61" <?php echo (isset($formData['country_code']) && $formData['country_code'] === '+61') ? 'selected' : ''; ?>>+61 (AU)</option>
+        <option value="+971" <?php echo (isset($formData['country_code']) && $formData['country_code'] === '+971') ? 'selected' : ''; ?>>+971 (AE)</option>
+    </select>
+    <input type="tel" name="number" id="phone-number" placeholder="Enter 10 digit number" 
+        pattern="[0-9]{10}"
+        maxlength="10"
+        class="<?php echo ($errorField === 'number') ? 'input-error' : ''; ?>"
+        value="<?php echo htmlspecialchars($formData['number'] ?? '', ENT_QUOTES); ?>" required>
+</div>
+<?php if ($errorField === 'number'): ?>
+    <div class="field-error">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span class="field-error-text"><?php echo htmlspecialchars($errorMessage); ?></span>
+    </div>
+<?php endif; ?>
+<div class="field-error" id="phone-error" style="display: none; margin-bottom: 16px;">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span class="field-error-text" id="phone-error-text"></span>
+</div>
 
-                <h2>Number of Employees:
-                    <input type="number" name="nemployees" min="1" placeholder="Enter Total number of Employees" 
-                        value="<?php echo htmlspecialchars($formData['nemployees'] ?? '', ENT_QUOTES); ?>" required>
-                </h2>
 
-                <h2>Department Responsibilities:
-                    <input type="text" name="resp" placeholder="Enter Responsibilities" 
-                        value="<?php echo htmlspecialchars($formData['resp'] ?? '', ENT_QUOTES); ?>" required>
-                </h2>
+                <h2>Number of Employees: <span class="required">*</span></h2>
+                <input type="number" name="nemployees" min="1" placeholder="Enter Total number of Employees" 
+                    value="<?php echo htmlspecialchars($formData['nemployees'] ?? '', ENT_QUOTES); ?>" required>
 
-                <h2>Annual Budget:
-                    <input type="text" name="budget" placeholder="Enter Annual Budget" 
-                        value="<?php echo htmlspecialchars($formData['budget'] ?? '₹', ENT_QUOTES); ?>" required>
-                </h2>
+                <h2>Department Responsibilities: <span class="required">*</span></h2>
+                <input type="text" name="resp" placeholder="Enter Responsibilities" 
+                    value="<?php echo htmlspecialchars($formData['resp'] ?? '', ENT_QUOTES); ?>" required>
 
-                <h2>Department Status:
-                    <label><input type="radio" name="status" value="Active" <?php echo (isset($formData['status']) && $formData['status'] === 'Active') ? 'checked' : ''; ?> required> Active</label>
-                    <label><input type="radio" name="status" value="Inactive" <?php echo (isset($formData['status']) && $formData['status'] === 'Inactive') ? 'checked' : ''; ?> required> Inactive</label>
-                </h2>
+                <h2>Annual Budget: <span class="required">*</span></h2>
+                <input type="text" name="budget" placeholder="Enter Annual Budget" 
+                    value="<?php echo htmlspecialchars($formData['budget'] ?? '₹', ENT_QUOTES); ?>" required>
 
-                <h2>Description:
-                    <textarea name="description" placeholder="Write Description"><?php echo htmlspecialchars($formData['description'] ?? '', ENT_QUOTES); ?></textarea>
-                </h2>
+                <h2>Department Status: <span class="required">*</span></h2>
+                <label><input type="radio" name="status" value="Active" <?php echo (isset($formData['status']) && $formData['status'] === 'Active') ? 'checked' : ''; ?> required> Active</label>
+                <label><input type="radio" name="status" value="Inactive" <?php echo (isset($formData['status']) && $formData['status'] === 'Inactive') ? 'checked' : ''; ?> required> Inactive</label>
+
+                <h2>Description: <span class="required">*</span></h2>
+<textarea name="description" placeholder="Write Description" required><?php echo htmlspecialchars($formData['description'] ?? '', ENT_QUOTES); ?></textarea>
+
 
                 <button type="submit">Submit</button>
             </form>
         </div>
     </div>
+<script>
+    // =============================
+    // PHONE NUMBER VALIDATION
+    // =============================
+    const phoneInput = document.getElementById('phone-number');
+    const phoneError = document.getElementById('phone-error');
+    const phoneErrorText = document.getElementById('phone-error-text');
 
-    <script>
-        // Auto-hide field error after 5 seconds
-        const fieldErrors = document.querySelectorAll('.field-error');
-        if (fieldErrors.length > 0) {
-            setTimeout(() => {
-                fieldErrors.forEach(error => {
-                    error.style.opacity = '0';
-                    error.style.transition = 'opacity 0.3s ease';
-                    setTimeout(() => {
-                        error.style.display = 'none';
-                        // Remove error class from input
-                        const input = error.previousElementSibling;
-                        if (input) {
-                            input.classList.remove('input-error');
-                        }
-                    }, 300);
-                });
-            }, 5000);
-
-            // Scroll to error field
-            const errorInput = document.querySelector('.input-error');
-            if (errorInput) {
-                errorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                errorInput.focus();
+    if (phoneInput && phoneError && phoneErrorText) {
+        // Real-time validation as user types
+        phoneInput.addEventListener('input', function() {
+            // Remove non-numeric characters
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            // Limit to 10 digits
+            if (this.value.length > 10) {
+                this.value = this.value.substring(0, 10);
             }
+            
+            // Reset error
+            phoneError.style.display = 'none';
+            this.classList.remove('input-error');
+            
+            // Show error if less than 10 digits
+            if (this.value.length > 0 && this.value.length < 10) {
+                phoneErrorText.textContent = 'Contact Number must be exactly 10 digits!';
+                phoneError.style.display = 'flex';
+                this.classList.add('input-error');
+            }
+        });
+    }
+
+    // =============================
+    // FORM SUBMISSION VALIDATION
+    // =============================
+    const form = document.querySelector('form');
+    
+    if (form) {
+        // Phone validation on submit (runs first with capture)
+        form.addEventListener('submit', function(e) {
+            if (phoneInput && phoneInput.value.length > 0 && phoneInput.value.length !== 10) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                phoneErrorText.textContent = 'Contact Number must be exactly 10 digits!';
+                phoneError.style.display = 'flex';
+                phoneInput.classList.add('input-error');
+                phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                phoneInput.focus();
+                return false;
+            }
+        }, { capture: true });
+
+        // General required fields validation
+        form.addEventListener('submit', function(e) {
+            // Remove all previous custom errors
+            document.querySelectorAll('.custom-required-error').forEach(err => err.remove());
+            
+            // Get all required fields EXCEPT those in phone-row
+            const requiredFields = Array.from(form.querySelectorAll('[required]')).filter(field => {
+                return !field.closest('.phone-row');
+            });
+            
+            let firstEmptyField = null;
+            
+            // Check each required field
+            requiredFields.forEach(field => {
+                field.classList.remove('input-error');
+                
+                const isEmpty = field.value.trim() === '' || 
+                               (field.tagName === 'SELECT' && (field.selectedIndex === 0 || field.value === '')) ||
+                               (field.type === 'radio' && !form.querySelector(`input[name="${field.name}"]:checked`));
+                
+                if (isEmpty && !firstEmptyField) {
+                    firstEmptyField = field;
+                }
+            });
+            
+            // Check phone number separately
+            if (phoneInput && phoneInput.value.trim() === '') {
+                if (!firstEmptyField) {
+                    firstEmptyField = phoneInput;
+                }
+            }
+            
+            // If found empty field, show error
+            if (firstEmptyField) {
+                e.preventDefault();
+                
+                firstEmptyField.classList.add('input-error');
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'field-error custom-required-error';
+                errorDiv.style.marginBottom = '16px';
+                errorDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span class="field-error-text">This field is required!</span>
+                `;
+                
+                // Insert error message
+                const phoneRow = firstEmptyField.closest('.phone-row');
+                if (phoneRow) {
+                    phoneRow.parentNode.insertBefore(errorDiv, phoneRow.nextSibling);
+                } else {
+                    firstEmptyField.parentNode.insertBefore(errorDiv, firstEmptyField.nextSibling);
+                }
+                
+                // Scroll and focus
+                firstEmptyField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstEmptyField.focus();
+                
+                // Remove error on input
+                firstEmptyField.addEventListener('input', function() {
+                    this.classList.remove('input-error');
+                    const customError = document.querySelector('.custom-required-error');
+                    if (customError) customError.remove();
+                }, { once: true });
+                
+                // Special handling for radio buttons
+                if (firstEmptyField.type === 'radio') {
+                    const radioGroup = form.querySelectorAll(`input[name="${firstEmptyField.name}"]`);
+                    radioGroup.forEach(radio => {
+                        radio.addEventListener('change', function() {
+                            radioGroup.forEach(r => r.classList.remove('input-error'));
+                            const customError = document.querySelector('.custom-required-error');
+                            if (customError) customError.remove();
+                        }, { once: true });
+                    });
+                }
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    if (errorDiv && errorDiv.parentNode) {
+                        errorDiv.style.opacity = '0';
+                        errorDiv.style.transition = 'opacity 0.3s ease';
+                        setTimeout(() => {
+                            if (errorDiv.parentNode) errorDiv.remove();
+                            firstEmptyField.classList.remove('input-error');
+                        }, 300);
+                    }
+                }, 5000);
+                
+                return false;
+            }
+        });
+    }
+
+    // =============================
+    // AUTO-HIDE SERVER ERRORS
+    // =============================
+    const serverErrors = document.querySelectorAll('.field-error:not(#phone-error):not(.custom-required-error)');
+    if (serverErrors.length > 0) {
+        setTimeout(() => {
+            serverErrors.forEach(error => {
+                error.style.opacity = '0';
+                error.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    error.style.display = 'none';
+                    const input = error.previousElementSibling;
+                    if (input) {
+                        input.classList.remove('input-error');
+                    }
+                }, 300);
+            });
+        }, 5000);
+
+        const errorInput = document.querySelector('.input-error');
+        if (errorInput && errorInput.id !== 'phone-number') {
+            errorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            errorInput.focus();
         }
-    </script>
+    }
+</script>
+
+
+
+
+
 
     <?php include '../footer.php'; ?>
 </body>
 
 </html>
-
