@@ -31,8 +31,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $description = htmlspecialchars(trim($_POST['description'] ?? ''), ENT_QUOTES, 'UTF-8');
 
     // Basic required fields validation
-    if ($department_id === '' || $dname === '' || $email === '' || $number === '' || 
-        $nemployees < 1 || $resp === '' || $budget === '' || $status === '' || $description === '') {
+    if (
+        $department_id === '' || $dname === '' || $email === '' || $number === '' ||
+        $resp === '' || $budget === '' || $status === '' || $description === ''
+    ) {
+
         $_SESSION['error_field'] = 'general';
         $_SESSION['error_message'] = 'All required fields must be filled.';
         $_SESSION['form_data'] = $_POST;
@@ -78,28 +81,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
         $stmt = $conn->prepare(
             "INSERT INTO departments (department_id, dname, email, country_code, number, resp, budget, status, description) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
+        // Changed from 9 to 8 parameters (removed nemployees)
         $stmt->bind_param("sssssssss", $department_id, $dname, $email, $country_code, $number, $resp, $budget, $status, $description);
 
         $stmt->execute();
         $stmt->close();
         $conn->close();
 
-        // Success - redirect to data page
         header("Location: get.php");
         exit;
-
     } catch (mysqli_sql_exception $e) {
         $conn->close();
-        
+
         // Check for duplicate entry errors
         if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
             $errorField = '';
             $errorMessage = '';
-            
-            if (strpos($e->getMessage(), "for key 'PRIMARY'") !== false || 
-                strpos($e->getMessage(), "'department_id'") !== false) {
+
+            if (
+                strpos($e->getMessage(), "for key 'PRIMARY'") !== false ||
+                strpos($e->getMessage(), "'department_id'") !== false
+            ) {
                 $errorField = 'department_id';
                 $errorMessage = "Department ID already exists!";
             } elseif (strpos($e->getMessage(), "'dname'") !== false) {
@@ -115,11 +119,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $errorField = 'general';
                 $errorMessage = "Duplicate entry found!";
             }
-            
+
             $_SESSION['error_field'] = $errorField;
             $_SESSION['error_message'] = $errorMessage;
             $_SESSION['form_data'] = $_POST;
-            
+
             header("Location: form.php");
             exit;
         } else {
@@ -131,4 +135,3 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
-?>

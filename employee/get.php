@@ -33,50 +33,9 @@ if (isset($_POST['bulk_delete']) && isset($_POST['selected_ids']) && is_array($_
 }
 
 // ---------------------------
-// EXPORT TO CSV
-// ---------------------------
-if (isset($_POST['export'])) {
-    if (isset($_POST['selected_ids']) && is_array($_POST['selected_ids']) && count($_POST['selected_ids']) > 0) {
-        $placeholders = implode(',', array_fill(0, count($_POST['selected_ids']), '?'));
-        $stmt = $conn->prepare("SELECT * FROM employees WHERE id IN ($placeholders)");
-        $types = str_repeat('s', count($_POST['selected_ids']));
-        $stmt->bind_param($types, ...$_POST['selected_ids']);
-        $stmt->execute();
-        $result = $stmt->get_result();
-    } else {
-        $result = $conn->query("SELECT * FROM employees");
-    }
-
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename=employees_export_' . date('Y-m-d_His') . '.csv');
-    $output = fopen('php://output', 'w');
-    fputcsv($output, ['Full Name', 'Department ID', 'DOB', 'Gender', 'Email', 'Country Code', 'Phone', 'Address', 'Designation', 'Currency', 'Salary', 'Joining Date', 'Aadhar']);
-
-    while ($row = $result->fetch_assoc()) {
-        fputcsv($output, [
-            $row['ename'],
-            $row['department_id'],
-            $row['dob'],
-            $row['gender'],
-            $row['email'],
-            $row['country_code'] ?? '+91',
-            $row['pnumber'],
-            $row['address'],
-            $row['designation'],
-            $row['currency'] ?? '₹',
-            $row['salary'],
-            $row['joining_date'],
-            $row['aadhar']
-        ]);
-    }
-    fclose($output);
-    exit;
-}
-
-// ---------------------------
 // UPDATE EMPLOYEE
 // ---------------------------
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POST['export']) && !isset($_POST['bulk_delete'])) {
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POST['bulk_delete'])) {
     $id = $_POST['id'];
     $country_code = htmlspecialchars(trim($_POST['country_code'] ?? '+91'), ENT_QUOTES, 'UTF-8');
     $currency = htmlspecialchars(trim($_POST['currency'] ?? '₹'), ENT_QUOTES, 'UTF-8');
@@ -88,20 +47,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POS
     );
     $stmt->bind_param(
         "ssssssssssssss",
-        $_POST['department_id'],
-        $_POST['ename'],
-        $_POST['dob'],
-        $_POST['gender'],
-        $_POST['email'],
-        $country_code,
-        $_POST['pnumber'],
-        $_POST['address'],
-        $_POST['designation'],
-        $currency,
-        $_POST['salary'],
-        $_POST['joining_date'],
-        $_POST['aadhar'],
-        $id
+        $_POST['department_id'], $_POST['ename'], $_POST['dob'], $_POST['gender'],
+        $_POST['email'], $country_code, $_POST['pnumber'], $_POST['address'],
+        $_POST['designation'], $currency, $_POST['salary'], $_POST['joining_date'], $_POST['aadhar'], $id
     );
     $stmt->execute();
     $stmt->close();
@@ -242,75 +190,185 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
             transform: translateY(-1px);
         }
 
-        .search-wrapper {
+        /* Export Dropdown */
+        .export-dropdown {
             position: relative;
             display: inline-block;
+        }
+
+        .export-dropdown-content {
+            display: none;
+            position: absolute;
+            background: #fff;
+            min-width: 140px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            overflow: hidden;
+            top: calc(100% + 6px);
+            right: 0;
+            z-index: 1000;
+        }
+
+        .export-dropdown-content a {
+            color: #111827;
+            padding: 10px 14px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .export-dropdown-content a i {
+            width: 16px;
+            font-size: 14px;
+        }
+
+        .export-dropdown-content a:hover {
+            background: #e5e7eb;
+        }
+
+        .export-dropdown.active .export-dropdown-content {
+            display: block;
+        }
+
+        /* Combined Search Box */
+        .search-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px 12px;
+            min-width: 350px;
+            gap: 8px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .search-wrapper:focus-within {
+            border-color: #68A691;
+            box-shadow: 0 0 0 3px rgba(104, 166, 145, 0.1);
+        }
+
+        .search-icon {
+            font-size: 16px;
+            color: #9ca3af;
             flex-shrink: 0;
         }
 
         .search-box {
-            padding: 10px 35px 10px 40px;
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
-            background: #f3f4f6;
+            flex: 1;
+            border: none;
+            background: transparent;
             font-size: 14px;
-            min-width: 250px;
-            width: 250px;
-            color: #6b7280;
-            transition: all 0.2s;
-        }
-
-        .search-box:focus {
+            color: #111827;
             outline: none;
-            border-color: #68A691;
-            background: #fff;
+            padding: 0;
+            min-width: 0;
         }
 
         .search-box::placeholder {
             color: #9ca3af;
         }
 
-        .search-box::-webkit-search-cancel-button {
-            display: none;
-            -webkit-appearance: none;
-        }
-
+        .search-box::-webkit-search-cancel-button,
         .search-box::-webkit-search-decoration {
             display: none;
             -webkit-appearance: none;
         }
 
-        .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 16px;
-            color: #9ca3af;
-            pointer-events: none;
+        /* Search Controls */
+        .search-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+            flex-shrink: 0;
         }
 
-        .clear-search {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 20px;
+        .clear-btn {
+            background: transparent;
+            border: none;
             color: #9ca3af;
             cursor: pointer;
-            display: none;
-            user-select: none;
-            line-height: 1;
-            width: 20px;
-            height: 20px;
-            text-align: center;
-            border-radius: 50%;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.2s;
         }
 
-        .clear-search:hover {
-            background: #e5e7eb;
+        .clear-btn:hover {
+            background: #f3f4f6;
             color: #111827;
+        }
+
+        .clear-btn i {
+            font-size: 14px;
+        }
+
+        .search-counter {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 600;
+            min-width: 40px;
+            text-align: center;
+            padding: 0 4px;
+        }
+
+        .nav-arrow {
+            background: transparent;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .nav-arrow:hover:not(:disabled) {
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        .nav-arrow:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .nav-arrow i {
+            font-size: 14px;
+        }
+
+        /* Match highlighting */
+        .highlight {
+            background-color: #fef3c7;
+            font-weight: 600;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .highlight-current {
+            background-color: #fbbf24 !important;
+            font-weight: 700;
+            color: #000;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .current-match {
+            background: #dbeafe !important;
+        }
+
+        .current-match td {
+            background: #dbeafe !important;
         }
 
         .table-container table {
@@ -374,11 +432,6 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
             width: 18px;
             height: 18px;
             cursor: pointer;
-        }
-
-        .highlight {
-            background-color: #ffe58f;
-            font-weight: 600;
         }
 
         /* Delete Modal */
@@ -499,7 +552,6 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
                 opacity: 0;
                 transform: translateY(-20px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -536,7 +588,7 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
                 flex-direction: column;
             }
 
-            .search-box {
+            .search-wrapper {
                 min-width: 100%;
             }
         }
@@ -587,14 +639,41 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
                 <button type="button" class="btn btn-delete" id="bulk-delete-btn" disabled onclick="showBulkDeleteModal()">
                     <i class="fas fa-trash"></i> Delete Selected (<span id="selected-count">0</span>)
                 </button>
-                <button type="button" class="btn btn-export" onclick="handleExport()">
-                    <i class="fas fa-download"></i> Export Data
-                </button>
+
+                <div class="export-dropdown">
+                    <button type="button" class="btn btn-export" id="export-btn">
+                        <i class="fas fa-download"></i> Export
+                        <i class="fas fa-chevron-down" style="font-size: 10px;"></i>
+                    </button>
+                    <div class="export-dropdown-content" id="export-menu">
+                        <a href="#" onclick="handleExport('csv'); return false;">
+                            <i class="fas fa-file-csv"></i> CSV
+                        </a>
+                        <a href="#" onclick="handleExport('pdf'); return false;">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </a>
+                        <a href="#" onclick="handleExport('excel'); return false;">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </a>
+                    </div>
+                </div>
 
                 <div class="search-wrapper">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="search" id="liveSearch" class="search-box" placeholder="Search Employee..." autocomplete="off" />
-                    <span id="clearSearch" class="clear-search">&times;</span>
+                    <input type="search" id="liveSearch" class="search-box" placeholder="Search..." autocomplete="off" maxlength="100" />
+
+                    <div class="search-controls">
+                        <button type="button" id="clearSearch" class="clear-btn" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <span class="search-counter" id="search-counter" style="display: none;">0/0</span>
+                        <button type="button" class="nav-arrow" id="search-prev" title="Previous" disabled style="display: none;">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button type="button" class="nav-arrow" id="search-next" title="Next" disabled style="display: none;">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -678,14 +757,37 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
         // =============================
         // EXPORT FUNCTION
         // =============================
-        function handleExport() {
-            const form = document.getElementById('bulk-form');
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'export';
-            input.value = '1';
-            form.appendChild(input);
-            form.submit();
+        const exportBtn = document.getElementById('export-btn');
+        const exportMenu = document.getElementById('export-menu');
+        const exportDropdown = document.querySelector('.export-dropdown');
+
+        if (exportBtn && exportMenu) {
+            exportBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                exportDropdown.classList.toggle('active');
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!exportDropdown.contains(e.target)) {
+                    exportDropdown.classList.remove('active');
+                }
+            });
+        }
+
+        function handleExport(format) {
+            const selectedIds = [];
+            document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
+                selectedIds.push(cb.value);
+            });
+
+            let url = 'export.php?format=' + format;
+
+            if (selectedIds.length > 0) {
+                url += '&ids=' + selectedIds.join(',');
+            }
+
+            window.location.href = url;
+            exportDropdown.classList.remove('active');
         }
 
         // =============================
@@ -695,9 +797,7 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
             const checkboxes = document.querySelectorAll('.row-checkbox:checked');
             const count = checkboxes.length;
 
-            if (count === 0) {
-                return;
-            }
+            if (count === 0) return;
 
             const selectedNames = [];
             checkboxes.forEach(cb => {
@@ -803,12 +903,18 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
         }
 
         // =============================
-        // LIVE SEARCH
+        // LIVE SEARCH WITH NAVIGATION
         // =============================
         const searchInput = document.getElementById('liveSearch');
         const tableData = document.getElementById('tableData');
         const clearBtn = document.getElementById('clearSearch');
         const noSearchRow = document.getElementById('no-search-row');
+        const searchCounter = document.getElementById('search-counter');
+        const searchPrev = document.getElementById('search-prev');
+        const searchNext = document.getElementById('search-next');
+
+        let matchedRows = [];
+        let currentMatchIndex = -1;
 
         function escapeRegExp(string) {
             return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -818,18 +924,77 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
             const rows = tableData.getElementsByClassName('data-row');
             for (let i = 0; i < rows.length; i++) {
                 rows[i].style.display = '';
+                rows[i].classList.remove('current-match');
                 const cells = rows[i].getElementsByTagName('td');
                 for (let c = 1; c < cells.length - 1; c++) {
                     cells[c].innerHTML = cells[c].textContent;
                 }
             }
             if (noSearchRow) noSearchRow.style.display = 'none';
+            matchedRows = [];
+            currentMatchIndex = -1;
+            updateSearchNav();
             updateBulkActions();
+        }
+
+        function updateSearchNav() {
+            const hasMatches = matchedRows.length > 0;
+            const hasSearchValue = searchInput.value.trim() !== '';
+
+            if (hasSearchValue) {
+                clearBtn.style.display = 'flex';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+
+            if (hasMatches) {
+                searchCounter.style.display = 'block';
+                searchPrev.style.display = 'flex';
+                searchNext.style.display = 'flex';
+                searchCounter.textContent = `${currentMatchIndex + 1}/${matchedRows.length}`;
+            } else if (hasSearchValue) {
+                searchCounter.style.display = 'block';
+                searchPrev.style.display = 'none';
+                searchNext.style.display = 'none';
+                searchCounter.textContent = '0/0';
+            } else {
+                searchCounter.style.display = 'none';
+                searchPrev.style.display = 'none';
+                searchNext.style.display = 'none';
+            }
+
+            searchPrev.disabled = matchedRows.length === 0 || currentMatchIndex === 0;
+            searchNext.disabled = matchedRows.length === 0 || currentMatchIndex === matchedRows.length - 1;
+        }
+
+        function highlightCurrentMatch() {
+            document.querySelectorAll('.highlight-current').forEach(el => {
+                el.classList.remove('highlight-current');
+            });
+
+            document.querySelectorAll('.current-match').forEach(row => {
+                row.classList.remove('current-match');
+            });
+
+            if (currentMatchIndex >= 0 && currentMatchIndex < matchedRows.length) {
+                const row = matchedRows[currentMatchIndex];
+                row.classList.add('current-match');
+
+                const cells = row.getElementsByTagName('td');
+                for (let c = 1; c < cells.length - 1; c++) {
+                    const highlights = cells[c].getElementsByClassName('highlight');
+                    if (highlights.length > 0) {
+                        highlights[0].classList.add('highlight-current');
+                        break;
+                    }
+                }
+
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
 
         searchInput.addEventListener('input', function() {
             const value = this.value.trim();
-            clearBtn.style.display = value ? 'block' : 'none';
 
             if (!value) {
                 resetTable();
@@ -837,9 +1002,11 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
             }
 
             const rows = tableData.getElementsByClassName('data-row');
+            matchedRows = [];
             let visibleCount = 0;
 
             for (let i = 0; i < rows.length; i++) {
+                rows[i].classList.remove('current-match');
                 const cells = rows[i].getElementsByTagName('td');
                 let rowMatches = false;
 
@@ -853,7 +1020,10 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
                 }
 
                 rows[i].style.display = rowMatches ? '' : 'none';
-                if (rowMatches) visibleCount++;
+                if (rowMatches) {
+                    visibleCount++;
+                    matchedRows.push(rows[i]);
+                }
 
                 const checkbox = rows[i].querySelector('.row-checkbox');
                 if (!rowMatches && checkbox && checkbox.checked) {
@@ -864,21 +1034,62 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
             if (noSearchRow) {
                 noSearchRow.style.display = visibleCount === 0 ? '' : 'none';
             }
+
+            currentMatchIndex = matchedRows.length > 0 ? 0 : -1;
+            highlightCurrentMatch();
+            updateSearchNav();
             updateBulkActions();
         });
 
-        clearBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            clearBtn.style.display = 'none';
-            resetTable();
-            searchInput.focus();
-        });
+        if (searchPrev) {
+            searchPrev.addEventListener('click', function() {
+                if (currentMatchIndex > 0) {
+                    currentMatchIndex--;
+                    highlightCurrentMatch();
+                    updateSearchNav();
+                }
+            });
+        }
 
-        searchInput.addEventListener('blur', function() {
-            if (!this.value.trim()) {
-                clearBtn.style.display = 'none';
+        if (searchNext) {
+            searchNext.addEventListener('click', function() {
+                if (currentMatchIndex < matchedRows.length - 1) {
+                    currentMatchIndex++;
+                    highlightCurrentMatch();
+                    updateSearchNav();
+                }
+            });
+        }
+
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && matchedRows.length > 0) {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    if (currentMatchIndex > 0) {
+                        currentMatchIndex--;
+                    } else {
+                        currentMatchIndex = matchedRows.length - 1;
+                    }
+                } else {
+                    if (currentMatchIndex < matchedRows.length - 1) {
+                        currentMatchIndex++;
+                    } else {
+                        currentMatchIndex = 0;
+                    }
+                }
+                highlightCurrentMatch();
+                updateSearchNav();
             }
         });
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                this.style.display = 'none';
+                resetTable();
+                searchInput.focus();
+            });
+        }
 
         // Row click to select
         document.addEventListener('DOMContentLoaded', function() {
@@ -887,7 +1098,6 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
             rows.forEach(row => {
                 row.addEventListener('click', function(e) {
                     if (e.target.closest('a') || e.target.closest('i.fa-edit') || e.target.type === 'checkbox') {
-
                         return;
                     }
 
@@ -905,3 +1115,5 @@ $result = $conn->query("SELECT * FROM employees ORDER BY ename ASC");
 </body>
 
 </html>
+
+

@@ -380,11 +380,23 @@ if (!$row) {
 </div>
 
 
-                <div class="field-group">
-                    <label for="department-nemployees">Number of Employees: <span class="required">*</span></label>
-                    <input type="number" name="nemployees" id="department-nemployees" min="1" 
-                        value="<?php echo (int)$row['nemployees']; ?>" required>
-                </div>
+               <div class="field-group">
+    <label>Number of Employees:</label>
+    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px 14px; font-size: 0.95rem; color: #0c4a6e; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-users" style="color: #0ea5e9; font-size: 18px;"></i>
+        <span><?php 
+            // Calculate current employee count for this department
+            $empCountStmt = $conn->prepare("SELECT COUNT(*) as count FROM employees WHERE department_id = ?");
+            $empCountStmt->bind_param("s", $row['department_id']);
+            $empCountStmt->execute();
+            $empCountResult = $empCountStmt->get_result();
+            $empCount = $empCountResult->fetch_assoc()['count'];
+            $empCountStmt->close();
+            echo $empCount;
+        ?> employees (calculated automatically)</span>
+    </div>
+</div>
+
 
                 <div class="field-group">
                     <label for="department-resp">Responsibilities: <span class="required">*</span></label>
