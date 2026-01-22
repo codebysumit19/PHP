@@ -29,28 +29,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             $errorType = 'password';        // only password empty
         } else {
             // Both filled – check DB
-            $stmt = $conn->prepare("SELECT userName, password, is_admin FROM signup WHERE email = ?");
+            $stmt = $conn->prepare("
+                SELECT userName, password, is_admin, is_verified
+                FROM signup
+                WHERE email = ?
+                LIMIT 1
+            ");
             $stmt->bind_param("s", $email);
             $stmt->execute();
             $result = $stmt->get_result();
 
             if ($user = $result->fetch_assoc()) {
-                if (password_verify($password, $user['password'])) {
+
+                // Block if email not verified
+                if ((int)$user['is_verified'] !== 1) {
+                    // treat as email error; you can customize UI text on the page if needed
+                    $errorType = 'email';
+                    // Optionally: $_SESSION['login_error_msg'] = 'Please verify your email before logging in.';
+                } elseif (password_verify($password, $user['password'])) {
+
                     session_regenerate_id(true);
                     $_SESSION['email']    = $email;
                     $_SESSION['userName'] = $user['userName'];
                     $_SESSION['is_admin'] = (int)$user['is_admin']; // 1 = admin, 0 = normal
+
                     $stmt->close();
                     $conn->close();
                     header("Location: link.php");
                     exit;
+
                 } else {
                     $errorType = 'password';
                 }
             } else {
                 $errorType = 'email';
             }
-
 
             $stmt->close();
         }
@@ -71,7 +84,6 @@ $isCaptchaError  = ($errorType === 'captcha');
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
@@ -83,7 +95,6 @@ $isCaptchaError  = ($errorType === 'captcha');
             padding: 0;
             box-sizing: border-box
         }
-
         body {
             font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #e8f5e9, #ffffff);
@@ -92,7 +103,6 @@ $isCaptchaError  = ($errorType === 'captcha');
             align-items: center;
             height: 100vh;
         }
-
         .card {
             background: #fff;
             padding: 30px;
@@ -101,19 +111,16 @@ $isCaptchaError  = ($errorType === 'captcha');
             width: 100%;
             max-width: 400px;
         }
-
         h1 {
             text-align: center;
             margin-bottom: 20px;
             color: #333
         }
-
         h3 {
             font-size: 16px;
             margin-bottom: 8px;
             color: #555
         }
-
         input[type="text"],
         input[type="password"],
         input[type="email"] {
@@ -124,12 +131,10 @@ $isCaptchaError  = ($errorType === 'captcha');
             border-radius: 5px;
             font-size: 16px;
         }
-
         input:focus {
             border-color: #3498db;
             outline: none
         }
-
         button {
             width: 100%;
             padding: 12px;
@@ -140,27 +145,22 @@ $isCaptchaError  = ($errorType === 'captcha');
             font-size: 18px;
             cursor: pointer;
         }
-
         button:hover {
             background: #2980b9
         }
-
         a {
             color: #3498db;
             text-decoration: none
         }
-
         a:hover {
             text-decoration: underline
         }
-
         .footer-text {
             text-align: center;
             margin-top: 15px
         }
     </style>
 </head>
-
 <body>
     <div class="card">
         <h1>Login</h1>
@@ -176,14 +176,14 @@ $isCaptchaError  = ($errorType === 'captcha');
             <input type="email" name="email" placeholder="Email" required>
             <?php if ($isEmailError): ?>
                 <div style="margin-top:-10px;margin-bottom:10px;font-size:13px;color:#b91c1c;">
-                    Email is incorrect.
+                    Email is incorrect or not verified.
                 </div>
             <?php endif; ?>
 
             <h3>Password:</h3>
             <input type="password" name="password" minlength="6"
-                title="Password must be at least 6 characters"
-                placeholder="Password" required>
+                   title="Password must be at least 6 characters"
+                   placeholder="Password" required>
             <?php if ($isPasswordError): ?>
                 <div style="margin-top:-10px;margin-bottom:10px;font-size:13px;color:#b91c1c;">
                     Password is incorrect.
@@ -196,9 +196,9 @@ $isCaptchaError  = ($errorType === 'captcha');
                     <strong><?php echo htmlspecialchars($_SESSION['login_captcha_question'] ?? '', ENT_QUOTES, 'UTF-8'); ?> =</strong>
                 </span>
                 <input type="number"
-                    name="login_captcha"
-                    required
-                    style="width:80px;padding:8px;border:1px solid #ccc;border-radius:5px;">
+                       name="login_captcha"
+                       required
+                       style="width:80px;padding:8px;border:1px solid #ccc;border-radius:5px;">
             </div>
             <?php if ($isCaptchaError): ?>
                 <div style="margin-bottom:10px;font-size:13px;color:#b91c1c;">
@@ -216,5 +216,4 @@ $isCaptchaError  = ($errorType === 'captcha');
         </div>
     </div>
 </body>
-
 </html>

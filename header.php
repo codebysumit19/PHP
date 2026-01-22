@@ -30,7 +30,7 @@ $userIsAdmin = !empty($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
 
     <nav class="main-nav">
         <a href="<?php echo BASE_URL; ?>link.php"
-           class="nav-link <?php echo ($currentPage === 'link.php') ? 'active' : ''; ?>">
+            class="nav-link <?php echo ($currentPage === 'link.php') ? 'active' : ''; ?>">
             Home
         </a>
 
@@ -45,19 +45,19 @@ $userIsAdmin = !empty($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
         </div>
 
         <div class="nav-dropdown">
-    <button class="nav-dropbtn <?php echo (strpos($currentPath, '/employee/') !== false) ? 'active' : ''; ?>">
-        Employees
-    </button>
-    <div class="nav-dropdown-content">
-        <!-- Everyone can see the form -->
-        <a href="<?php echo BASE_URL; ?>employee/form.php">Employees Form</a>
+            <button class="nav-dropbtn <?php echo (strpos($currentPath, '/employee/') !== false) ? 'active' : ''; ?>">
+                Employees
+            </button>
+            <div class="nav-dropdown-content">
+                <!-- Everyone can see the form -->
+                <a href="<?php echo BASE_URL; ?>employee/form.php">Employees Form</a>
 
-        <!-- Only admin sees Data link -->
-        <?php if ($userIsAdmin): ?>
-            <a href="<?php echo BASE_URL; ?>employee/get.php">Employees Data</a>
-        <?php endif; ?>
-    </div>
-</div>
+                <!-- Only admin sees Data link -->
+                <?php if ($userIsAdmin): ?>
+                    <a href="<?php echo BASE_URL; ?>employee/get.php">Employees Data</a>
+                <?php endif; ?>
+            </div>
+        </div>
 
         <div class="nav-dropdown">
             <button class="nav-dropbtn <?php echo (strpos($currentPath, '/department/') !== false) ? 'active' : ''; ?>">
@@ -80,12 +80,12 @@ $userIsAdmin = !empty($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
         </div>
 
         <a href="<?php echo BASE_URL; ?>privacy.php"
-           class="nav-link <?php echo (strpos($currentPath, 'privacy.php') !== false) ? 'active' : ''; ?>">
+            class="nav-link <?php echo (strpos($currentPath, 'privacy.php') !== false) ? 'active' : ''; ?>">
             Privacy &amp; Terms
         </a>
 
         <a href="<?php echo BASE_URL; ?>contact.php"
-           class="nav-link <?php echo (strpos($currentPath, 'contact.php') !== false) ? 'active' : ''; ?>">
+            class="nav-link <?php echo (strpos($currentPath, 'contact.php') !== false) ? 'active' : ''; ?>">
             Contact
         </a>
     </nav>
@@ -134,8 +134,8 @@ $userIsAdmin = !empty($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
             <hr class="user-divider">
 
             <a href="<?php echo BASE_URL; ?>logout.php"
-               id="logout-link"
-               class="user-menu-item logout-item">
+                id="logout-link"
+                class="user-menu-item logout-item">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </a>
@@ -156,7 +156,7 @@ $userIsAdmin = !empty($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
         </div>
     </div>
 
-     <style>
+    <style>
         .site-header {
             position: sticky;
             top: 0;
@@ -587,66 +587,66 @@ $userIsAdmin = !empty($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
 </header>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const avatar     = document.getElementById('user-avatar');
-    const menu       = document.getElementById('user-menu');
-    const overlay    = document.getElementById('logout-overlay');
-    const logoutLink = document.getElementById('logout-link');
-    const btnConfirm = document.getElementById('logout-confirm');
-    const btnCancel  = document.getElementById('logout-cancel');
-    const btnClose   = document.getElementById('logout-close');
+    document.addEventListener('DOMContentLoaded', function() {
+        const avatar = document.getElementById('user-avatar');
+        const menu = document.getElementById('user-menu');
+        const overlay = document.getElementById('logout-overlay');
+        const logoutLink = document.getElementById('logout-link');
+        const btnConfirm = document.getElementById('logout-confirm');
+        const btnCancel = document.getElementById('logout-cancel');
+        const btnClose = document.getElementById('logout-close');
 
-    // Toggle user menu
-    if (avatar && menu) {
-        avatar.addEventListener('click', function (e) {
-            e.stopPropagation();
-            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        // Toggle user menu
+        if (avatar && menu) {
+            avatar.addEventListener('click', function(e) {
+                e.stopPropagation();
+                menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!menu.contains(e.target) && e.target !== avatar) {
+                    menu.style.display = 'none';
+                }
+            });
+
+            menu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+
+        function hideOverlay() {
+            if (overlay) overlay.style.display = 'none';
+            if (menu) menu.style.display = 'none';
+        }
+
+        // Show logout confirmation
+        if (logoutLink && overlay) {
+            logoutLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                overlay.style.display = 'flex';
+            });
+        }
+
+        if (btnCancel) btnCancel.addEventListener('click', hideOverlay);
+        if (btnClose) btnClose.addEventListener('click', hideOverlay);
+
+        // Confirm logout
+        if (btnConfirm && logoutLink) {
+            btnConfirm.addEventListener('click', function() {
+                window.location.href = logoutLink.href;
+            });
+        }
+
+        // Close overlay on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') hideOverlay();
         });
 
-        document.addEventListener('click', function (e) {
-            if (!menu.contains(e.target) && e.target !== avatar) {
-                menu.style.display = 'none';
-            }
-        });
-
-        menu.addEventListener('click', function (e) {
-            e.stopPropagation();
-        });
-    }
-
-    function hideOverlay() {
-        if (overlay) overlay.style.display = 'none';
-        if (menu)    menu.style.display    = 'none';
-    }
-
-    // Show logout confirmation
-    if (logoutLink && overlay) {
-        logoutLink.addEventListener('click', function (e) {
-            e.preventDefault();
-            overlay.style.display = 'flex';
-        });
-    }
-
-    if (btnCancel) btnCancel.addEventListener('click', hideOverlay);
-    if (btnClose)  btnClose.addEventListener('click', hideOverlay);
-
-    // Confirm logout
-    if (btnConfirm && logoutLink) {
-        btnConfirm.addEventListener('click', function () {
-            window.location.href = logoutLink.href;
-        });
-    }
-
-    // Close overlay on Escape
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') hideOverlay();
+        // Close overlay on outside click
+        if (overlay) {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) hideOverlay();
+            });
+        }
     });
-
-    // Close overlay on outside click
-    if (overlay) {
-        overlay.addEventListener('click', function (e) {
-            if (e.target === this) hideOverlay();
-        });
-    }
-});
 </script>
