@@ -56,8 +56,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POS
     exit;
 }
 
-// Fetch all projects
-$result = $conn->query("SELECT * FROM projects ORDER BY pname ASC");
+// --- PAGINATION CONFIG ---
+$perPage = 10; // rows per page
+$page = isset($_GET['page']) && ctype_digit($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
+
+// Count total projects
+$countResult = $conn->query("SELECT COUNT(*) AS total FROM projects");
+$rowCount    = $countResult->fetch_assoc();
+$totalRows   = (int)$rowCount['total'];
+$totalPages  = $totalRows > 0 ? (int)ceil($totalRows / $perPage) : 1;
+if ($page > $totalPages) $page = $totalPages;
+
+// Calculate offset
+$offset = ($page - 1) * $perPage;
+
+// Fetch projects with LIMIT/OFFSET
+$result = $conn->query("
+    SELECT *
+    FROM projects
+    ORDER BY pname ASC
+    LIMIT $perPage OFFSET $offset
+");
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -557,6 +578,60 @@ $result = $conn->query("SELECT * FROM projects ORDER BY pname ASC");
             }
         }
 
+        .pagination {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Buttons: Prev, Next, numbers, Go */
+.pagination-link {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    text-decoration: none;
+    margin: 0 2px;
+    background: #fff;
+    color: #111827;
+    font-size: 14px;
+    transition: background-color 0.2s ease, color 0.2s ease,
+                box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+/* Hover (for Go, numbers, Prev/Next) */
+.pagination-link:hover:not(.disabled):not(.active) {
+    background-color: #e5e7eb;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+/* Current page */
+.pagination-link.active {
+    background: #111827;
+    color: #f9fafb;
+}
+
+/* Disabled Prev/Next */
+.pagination-link.disabled {
+    background: #f9fafb;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+/* Optional: Go-to-page input look */
+.pagination input[type="number"] {
+    width: 60px;
+    padding: 4px;
+    margin: 0 4px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+
         @media (min-width:768px) {
             .table-container {
                 padding: 30px 24px 40px;
@@ -725,6 +800,54 @@ $result = $conn->query("SELECT * FROM projects ORDER BY pname ASC");
                     </tr>
                 </tbody>
             </table>
+            <?php if ($totalRows > 0): ?>
+    <div class="pagination">
+        <!-- Go to page -->
+        <span style="font-size:13px; color:#6b7280; margin-right:8px;">
+            Go to page:
+            <input
+                type="number"
+                id="goto-page"
+                min="1"
+                max="<?= $totalPages ?>"
+                value="<?= $page ?>"
+            >
+            <button
+                type="button"
+                id="goto-btn"
+                class="pagination-link"
+            >
+                Go
+            </button>
+        </span>
+
+        <!-- Prev -->
+        <a href="?page=<?= max(1, $page - 1) ?>"
+           class="pagination-link <?= $page <= 1 ? 'disabled' : '' ?>">
+            &laquo; Prev
+        </a>
+
+        <!-- Page numbers -->
+        <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+            <a href="?page=<?= $p ?>"
+               class="pagination-link <?= $p == $page ? 'active' : '' ?>">
+                <?= $p ?>
+            </a>
+        <?php endfor; ?>
+
+        <!-- Next -->
+        <a href="?page=<?= min($totalPages, $page + 1) ?>"
+           class="pagination-link <?= $page >= $totalPages ? 'disabled' : '' ?>">
+            Next &raquo;
+        </a>
+
+        <!-- Info -->
+        <span style="font-size:13px; color:#6b7280; margin-left:8px;">
+            Page <?= $page ?> of <?= $totalPages ?> · <?= $totalRows ?> projects
+        </span>
+    </div>
+<?php endif; ?>
+
         </form>
     </div>
 
@@ -1098,6 +1221,41 @@ $result = $conn->query("SELECT * FROM projects ORDER BY pname ASC");
                 });
             });
         });
+
+            // =============================
+    // GO TO PAGE (pagination)
+    // =============================
+    document.addEventListener('DOMContentLoaded', function () {
+        const gotoInput = document.getElementById('goto-page');
+        const gotoBtn   = document.getElementById('goto-btn');
+        if (!gotoInput || !gotoBtn) return;
+
+        const maxPageAttr = gotoInput.getAttribute('max');
+        const maxPage = maxPageAttr ? parseInt(maxPageAttr, 10) : 1;
+
+        function goToPage() {
+            let p = parseInt(gotoInput.value, 10);
+            if (isNaN(p)) return;
+
+            if (p < 1) p = 1;
+            if (p > maxPage) p = maxPage;
+
+            window.location.href = '?page=' + p;
+        }
+
+        gotoBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            goToPage();
+        });
+
+        gotoInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                goToPage();
+            }
+        });
+    });
+
     </script>
 
     <?php include '../footer.php'; ?>

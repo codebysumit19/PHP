@@ -1,3 +1,19 @@
+<?php
+session_start();
+
+$errorMsg = $_SESSION['signup_error'] ?? '';
+$old      = $_SESSION['signup_old'] ?? ['userName' => '', 'email' => ''];
+unset($_SESSION['signup_error'], $_SESSION['signup_old']);
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $a = random_int(1, 9);
+    $b = random_int(1, 9);
+    $_SESSION['signup_captcha_answer']   = $a + $b;
+    $_SESSION['signup_captcha_question'] = "$a + $b";
+}
+
+$isCaptchaError = ($errorMsg === 'Captcha is incorrect. Please try again.');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,8 +59,6 @@
         .footer-text{
             text-align:center;margin-top:15px;
         }
-
-        /* Styled submit button */
         .btn-signup{
             display:inline-block;
             width:100%;
@@ -67,13 +81,24 @@
 <body>
 <div class="card">
     <h1>Sign Up</h1>
+
+    <?php if ($errorMsg && !$isCaptchaError): ?>
+        <div style="margin-bottom:10px;padding:8px;border-radius:4px;background:#fee2e2;color:#b91c1c;font-size:14px;">
+            <?php echo htmlspecialchars($errorMsg, ENT_QUOTES, 'UTF-8'); ?>
+        </div>
+    <?php endif; ?>
+
     <form method="POST" action="sign.php">
         <h3>Full Name:</h3>
-        <input type="text" name="userName" pattern="[A-Za-z\s]+"
+        <input type="text" name="userName"
+               value="<?php echo htmlspecialchars($old['userName'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+               pattern="[A-Za-z\s]+"
                title="Only letters and spaces allowed" placeholder="Full Name" required>
 
         <h3>Email:</h3>
-        <input type="email" name="email" placeholder="Email" required>
+        <input type="email" name="email"
+               value="<?php echo htmlspecialchars($old['email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+               placeholder="Email" required>
 
         <h3>Password:</h3>
         <input type="password" name="password" minlength="6"
@@ -82,6 +107,23 @@
         <h3>Confirm Password:</h3>
         <input type="password" name="confirm_password" minlength="6"
                title="At least 6 characters" placeholder="Confirm Password" required>
+
+        <h3>Captcha:</h3>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span>
+                <strong><?php echo htmlspecialchars($_SESSION['signup_captcha_question'] ?? '', ENT_QUOTES, 'UTF-8'); ?> =</strong>
+            </span>
+            <input type="number"
+                   name="signup_captcha"
+                   required
+                   style="width:80px;padding:8px;border:1px solid #ccc;border-radius:5px;">
+        </div>
+
+        <?php if ($isCaptchaError): ?>
+            <div style="margin-bottom:10px;font-size:13px;color:#b91c1c;">
+                <?php echo htmlspecialchars($errorMsg, ENT_QUOTES, 'UTF-8'); ?>
+            </div>
+        <?php endif; ?>
 
         <button type="submit" class="btn-signup">Sign Up</button>
     </form>

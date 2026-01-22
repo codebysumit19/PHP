@@ -3,16 +3,16 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Adjust this to your real base path
 define('BASE_URL', '/PHP/');
 
 $currentPath = $_SERVER['REQUEST_URI'];
 $currentPage = basename($_SERVER['PHP_SELF']);
 $headerTitle = isset($pageTitle) && $pageTitle !== '' ? $pageTitle : 'PHP CRUD Dashboard';
-$userName = $_SESSION['userName'] ?? 'User';
+$userName    = $_SESSION['userName'] ?? 'User';
 $userInitial = strtoupper(mb_substr($userName, 0, 1, 'UTF-8'));
 
-$dirName = basename(__DIR__);
-$base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '../' : './';
+$userIsAdmin = !empty($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
 ?>
 <header class="site-header">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -23,14 +23,21 @@ $base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '..
                 <img src="https://friconix.com/jpg/fi-snsuxx-php-logo.jpg" alt="PHP Logo" class="logo-img">
             </div>
         </a>
-        <h3 class="header-title"><?php echo htmlspecialchars($headerTitle, ENT_QUOTES, 'UTF-8'); ?></h3>
+        <h3 class="header-title">
+            <?php echo htmlspecialchars($headerTitle, ENT_QUOTES, 'UTF-8'); ?>
+        </h3>
     </div>
 
     <nav class="main-nav">
-        <a href="<?php echo BASE_URL; ?>link.php" class="nav-link <?php echo ($currentPage === 'link.php') ? 'active' : ''; ?>">Home</a>
+        <a href="<?php echo BASE_URL; ?>link.php"
+           class="nav-link <?php echo ($currentPage === 'link.php') ? 'active' : ''; ?>">
+            Home
+        </a>
 
         <div class="nav-dropdown">
-            <button class="nav-dropbtn <?php echo (strpos($currentPath, '/event/') !== false) ? 'active' : ''; ?>">Event</button>
+            <button class="nav-dropbtn <?php echo (strpos($currentPath, '/event/') !== false) ? 'active' : ''; ?>">
+                Event
+            </button>
             <div class="nav-dropdown-content">
                 <a href="<?php echo BASE_URL; ?>event/form.php">Event Form</a>
                 <a href="<?php echo BASE_URL; ?>event/get.php">Event Data</a>
@@ -38,15 +45,24 @@ $base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '..
         </div>
 
         <div class="nav-dropdown">
-            <button class="nav-dropbtn <?php echo (strpos($currentPath, '/employee/') !== false) ? 'active' : ''; ?>">Employees</button>
-            <div class="nav-dropdown-content">
-                <a href="<?php echo BASE_URL; ?>employee/form.php">Employees Form</a>
-                <a href="<?php echo BASE_URL; ?>employee/get.php">Employees Data</a>
-            </div>
-        </div>
+    <button class="nav-dropbtn <?php echo (strpos($currentPath, '/employee/') !== false) ? 'active' : ''; ?>">
+        Employees
+    </button>
+    <div class="nav-dropdown-content">
+        <!-- Everyone can see the form -->
+        <a href="<?php echo BASE_URL; ?>employee/form.php">Employees Form</a>
+
+        <!-- Only admin sees Data link -->
+        <?php if ($userIsAdmin): ?>
+            <a href="<?php echo BASE_URL; ?>employee/get.php">Employees Data</a>
+        <?php endif; ?>
+    </div>
+</div>
 
         <div class="nav-dropdown">
-            <button class="nav-dropbtn <?php echo (strpos($currentPath, '/department/') !== false) ? 'active' : ''; ?>">Department</button>
+            <button class="nav-dropbtn <?php echo (strpos($currentPath, '/department/') !== false) ? 'active' : ''; ?>">
+                Department
+            </button>
             <div class="nav-dropdown-content">
                 <a href="<?php echo BASE_URL; ?>department/form.php">Departments Form</a>
                 <a href="<?php echo BASE_URL; ?>department/get.php">Departments Data</a>
@@ -54,15 +70,24 @@ $base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '..
         </div>
 
         <div class="nav-dropdown">
-            <button class="nav-dropbtn <?php echo (strpos($currentPath, '/project/') !== false) ? 'active' : ''; ?>">Project</button>
+            <button class="nav-dropbtn <?php echo (strpos($currentPath, '/project/') !== false) ? 'active' : ''; ?>">
+                Project
+            </button>
             <div class="nav-dropdown-content">
                 <a href="<?php echo BASE_URL; ?>project/form.php">Project Form</a>
                 <a href="<?php echo BASE_URL; ?>project/get.php">Project Data</a>
             </div>
         </div>
 
-        <a href="<?php echo $base; ?>privacy.php" class="nav-link <?php echo (strpos($currentPath, 'privacy.php') !== false) ? 'active' : ''; ?>">Privacy &amp; Terms</a>
-        <a href="<?php echo $base; ?>contact.php" class="nav-link <?php echo (strpos($currentPath, 'contact.php') !== false) ? 'active' : ''; ?>">Contact</a>
+        <a href="<?php echo BASE_URL; ?>privacy.php"
+           class="nav-link <?php echo (strpos($currentPath, 'privacy.php') !== false) ? 'active' : ''; ?>">
+            Privacy &amp; Terms
+        </a>
+
+        <a href="<?php echo BASE_URL; ?>contact.php"
+           class="nav-link <?php echo (strpos($currentPath, 'contact.php') !== false) ? 'active' : ''; ?>">
+            Contact
+        </a>
     </nav>
 
     <div class="header-right">
@@ -76,10 +101,19 @@ $base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '..
                     <?php echo htmlspecialchars($userInitial, ENT_QUOTES, 'UTF-8'); ?>
                 </div>
                 <div class="user-card-info">
-                    <div class="user-card-name"><?php echo htmlspecialchars($userName, ENT_QUOTES, 'UTF-8'); ?></div>
+                    <div class="user-card-name">
+                        <?php echo htmlspecialchars($userName, ENT_QUOTES, 'UTF-8'); ?>
+                        <?php if ($userIsAdmin): ?>
+                            <span style="margin-left:6px;padding:2px 6px;font-size:10px;
+                                         border-radius:999px;background:#f97316;color:#fff;">
+                                Admin
+                            </span>
+                        <?php endif; ?>
+                    </div>
                     <div class="user-card-subtitle">Logged in</div>
                 </div>
             </div>
+
             <hr class="user-divider">
 
             <a href="<?php echo BASE_URL; ?>link.php" class="user-menu-item">
@@ -99,13 +133,17 @@ $base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '..
 
             <hr class="user-divider">
 
-            <a href="<?php echo $base; ?>logout.php" id="logout-link" class="user-menu-item logout-item">
+            <a href="<?php echo BASE_URL; ?>logout.php"
+               id="logout-link"
+               class="user-menu-item logout-item">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </a>
         </div>
     </div>
 
+
+    <!-- Logout confirmation -->
     <div class="logout-overlay" id="logout-overlay">
         <div class="logout-modal">
             <button type="button" class="logout-close" id="logout-close">&times;</button>
@@ -118,7 +156,7 @@ $base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '..
         </div>
     </div>
 
-    <style>
+     <style>
         .site-header {
             position: sticky;
             top: 0;
@@ -549,76 +587,66 @@ $base = in_array($dirName, ['event', 'employee', 'department', 'project']) ? '..
 </header>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const avatar = document.getElementById('user-avatar');
-        const menu = document.getElementById('user-menu');
-        const overlay = document.getElementById('logout-overlay');
-        const logoutLink = document.getElementById('logout-link');
-        const btnConfirm = document.getElementById('logout-confirm');
-        const btnCancel = document.getElementById('logout-cancel');
-        const btnClose = document.getElementById('logout-close');
+document.addEventListener('DOMContentLoaded', function () {
+    const avatar     = document.getElementById('user-avatar');
+    const menu       = document.getElementById('user-menu');
+    const overlay    = document.getElementById('logout-overlay');
+    const logoutLink = document.getElementById('logout-link');
+    const btnConfirm = document.getElementById('logout-confirm');
+    const btnCancel  = document.getElementById('logout-cancel');
+    const btnClose   = document.getElementById('logout-close');
 
-        // Toggle user menu
-        if (avatar && menu) {
-            avatar.addEventListener('click', function(e) {
-                e.stopPropagation();
-                menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-            });
+    // Toggle user menu
+    if (avatar && menu) {
+        avatar.addEventListener('click', function (e) {
+            e.stopPropagation();
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        });
 
-            // Close menu when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!menu.contains(e.target) && e.target !== avatar) {
-                    menu.style.display = 'none';
-                }
-            });
-
-            // Prevent menu from closing when clicking inside
-            menu.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-        }
-
-        // Hide logout overlay
-        function hideOverlay() {
-            if (overlay) {
-                overlay.style.display = 'none';
-                if (menu) menu.style.display = 'none';
-            }
-        }
-
-        // Show logout confirmation
-        if (logoutLink && overlay) {
-            logoutLink.addEventListener('click', function(e) {
-                e.preventDefault();
-                overlay.style.display = 'flex';
-            });
-        }
-
-        // Cancel logout
-        if (btnCancel) btnCancel.addEventListener('click', hideOverlay);
-        if (btnClose) btnClose.addEventListener('click', hideOverlay);
-
-        // Confirm logout
-        if (btnConfirm && logoutLink) {
-            btnConfirm.addEventListener('click', function() {
-                window.location.href = logoutLink.href;
-            });
-        }
-
-        // Close overlay on Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                hideOverlay();
+        document.addEventListener('click', function (e) {
+            if (!menu.contains(e.target) && e.target !== avatar) {
+                menu.style.display = 'none';
             }
         });
 
-        // Close overlay on outside click
-        if (overlay) {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    hideOverlay();
-                }
-            });
-        }
+        menu.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+    }
+
+    function hideOverlay() {
+        if (overlay) overlay.style.display = 'none';
+        if (menu)    menu.style.display    = 'none';
+    }
+
+    // Show logout confirmation
+    if (logoutLink && overlay) {
+        logoutLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            overlay.style.display = 'flex';
+        });
+    }
+
+    if (btnCancel) btnCancel.addEventListener('click', hideOverlay);
+    if (btnClose)  btnClose.addEventListener('click', hideOverlay);
+
+    // Confirm logout
+    if (btnConfirm && logoutLink) {
+        btnConfirm.addEventListener('click', function () {
+            window.location.href = logoutLink.href;
+        });
+    }
+
+    // Close overlay on Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') hideOverlay();
     });
+
+    // Close overlay on outside click
+    if (overlay) {
+        overlay.addEventListener('click', function (e) {
+            if (e.target === this) hideOverlay();
+        });
+    }
+});
 </script>

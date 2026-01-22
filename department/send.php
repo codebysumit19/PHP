@@ -90,7 +90,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->close();
         $conn->close();
 
-        header("Location: get.php");
+        header("Location: ../submit.php");
         exit;
     } catch (mysqli_sql_exception $e) {
         $conn->close();

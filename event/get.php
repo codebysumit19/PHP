@@ -55,9 +55,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POS
     header("Location: get.php");
     exit;
 }
-//vhgfghed
-// Initial load
-$result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
+
+// --- PAGINATION CONFIG ---
+$perPage = 10; // rows per page
+$page = isset($_GET['page']) && ctype_digit($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
+
+// Count total events
+$countResult = $conn->query("SELECT COUNT(*) AS total FROM events");
+$rowCount = $countResult->fetch_assoc();
+$totalRows = (int)$rowCount['total'];
+$totalPages = $totalRows > 0 ? (int)ceil($totalRows / $perPage) : 1;
+if ($page > $totalPages) $page = $totalPages;
+
+// Calculate offset
+$offset = ($page - 1) * $perPage;
+
+// Existing query, now with LIMIT
+$result = $conn->query(
+    "SELECT * FROM events 
+     ORDER BY date DESC, stime DESC 
+     LIMIT $perPage OFFSET $offset"
+);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -551,11 +571,55 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
                 opacity: 0;
                 transform: translateY(-20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
+
+
+        .pagination {
+            margin-top: 16px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+
+        }
+
+        .pagination-link {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            text-decoration: none;
+            margin: 0 2px;
+            background: #fff;
+            color: #111827;
+            font-size: 14px;
+            transition: background-color 0.2s ease, color 0.2s ease,
+                box-shadow 0.2s ease, transform 0.1s ease;
+        }
+
+        .pagination-link:hover:not(.disabled):not(.active) {
+            background-color: #e5e7eb;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .pagination-link.active {
+            background: #111827;
+            color: #f9fafb;
+        }
+
+        .pagination-link.disabled {
+            background: #f9fafb;
+            color: #9ca3af;
+            pointer-events: none;
+        }
+
+
 
         @media (min-width:768px) {
             .table-container {
@@ -630,7 +694,7 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
                     <i class="fas fa-chevron-left"></i> Home
                 </a>
             </h1>
-            
+
             <div class="header-right">
                 <a href="form.php" class="btn btn-add">
                     <i class="fas fa-plus"></i> Add New Data
@@ -638,7 +702,7 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
                 <button type="button" class="btn btn-delete" id="bulk-delete-btn" disabled onclick="showBulkDeleteModal()">
                     <i class="fas fa-trash"></i> Delete Selected (<span id="selected-count">0</span>)
                 </button>
-                
+
                 <div class="export-dropdown">
                     <button type="button" class="btn btn-export" id="export-btn">
                         <i class="fas fa-download"></i> Export
@@ -656,11 +720,11 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
                         </a>
                     </div>
                 </div>
-                
+
                 <div class="search-wrapper">
                     <i class="fas fa-search search-icon"></i>
                     <input type="search" id="liveSearch" class="search-box" placeholder="Search..." autocomplete="off" maxlength="100" />
-                    
+
                     <div class="search-controls">
                         <button type="button" id="clearSearch" class="clear-btn" style="display: none;">
                             <i class="fas fa-times"></i>
@@ -725,6 +789,56 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
                     </tr>
                 </tbody>
             </table>
+            <?php if ($totalRows > 0): ?>
+                <div class="pagination">
+                   <span style="font-size:13px; color:#6b7280; margin-right:8px;">
+    Go to page:
+    <input
+        type="number"
+        id="goto-page"
+        min="1"
+        max="<?= $totalPages ?>"
+        value="<?= $page ?>"
+        style="width:60px; padding:4px; margin:0 4px; border:1px solid #d1d5db; border-radius:6px; font-size:13px;"
+    >
+    <button
+        type="button"
+        id="goto-btn"
+        class="pagination-link"
+    >
+        Go
+    </button>
+</span>
+
+
+                    <!-- Previous -->
+                    <a href="?page=<?= max(1, $page - 1) ?>"
+                        class="pagination-link <?= $page <= 1 ? 'disabled' : '' ?>">
+                        &laquo; Prev
+                    </a>
+
+                    <!-- Page numbers -->
+                    <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+                        <a href="?page=<?= $p ?>"
+                            class="pagination-link <?= $p == $page ? 'active' : '' ?>">
+                            <?= $p ?>
+                        </a>
+                    <?php endfor; ?>
+
+                    <!-- Next -->
+                    <a href="?page=<?= min($totalPages, $page + 1) ?>"
+                        class="pagination-link <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                        Next &raquo;
+                    </a>
+
+                    <!-- Info -->
+                    <span style="font-size:13px; color:#6b7280; margin-left:8px;">
+                        Page <?= $page ?> of <?= $totalPages ?> · <?= $totalRows ?> events
+                    </span>
+                </div>
+            <?php endif; ?>
+
+
         </form>
     </div>
 
@@ -768,13 +882,13 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
             document.querySelectorAll('.row-checkbox:checked').forEach(cb => {
                 selectedIds.push(cb.value);
             });
-            
+
             let url = 'export.php?format=' + format;
-            
+
             if (selectedIds.length > 0) {
                 url += '&ids=' + selectedIds.join(',');
             }
-            
+
             window.location.href = url;
             exportDropdown.classList.remove('active');
         }
@@ -796,7 +910,7 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
             });
 
             const deleteText = document.getElementById('delete-event-text');
-            
+
             if (count === 1) {
                 deleteText.textContent = `Are you sure you want to delete "${selectedNames[0]}"? This action cannot be undone.`;
             } else if (count <= 3) {
@@ -929,13 +1043,13 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
         function updateSearchNav() {
             const hasMatches = matchedRows.length > 0;
             const hasSearchValue = searchInput.value.trim() !== '';
-            
+
             if (hasSearchValue) {
                 clearBtn.style.display = 'flex';
             } else {
                 clearBtn.style.display = 'none';
             }
-            
+
             if (hasMatches) {
                 searchCounter.style.display = 'block';
                 searchPrev.style.display = 'flex';
@@ -951,7 +1065,7 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
                 searchPrev.style.display = 'none';
                 searchNext.style.display = 'none';
             }
-            
+
             searchPrev.disabled = matchedRows.length === 0 || currentMatchIndex === 0;
             searchNext.disabled = matchedRows.length === 0 || currentMatchIndex === matchedRows.length - 1;
         }
@@ -960,15 +1074,15 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
             document.querySelectorAll('.highlight-current').forEach(el => {
                 el.classList.remove('highlight-current');
             });
-            
+
             document.querySelectorAll('.current-match').forEach(row => {
                 row.classList.remove('current-match');
             });
-            
+
             if (currentMatchIndex >= 0 && currentMatchIndex < matchedRows.length) {
                 const row = matchedRows[currentMatchIndex];
                 row.classList.add('current-match');
-                
+
                 const cells = row.getElementsByTagName('td');
                 for (let c = 1; c < cells.length - 1; c++) {
                     const highlights = cells[c].getElementsByClassName('highlight');
@@ -977,8 +1091,11 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
                         break;
                     }
                 }
-                
-                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                row.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
             }
         }
 
@@ -1023,7 +1140,7 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
             if (noSearchRow) {
                 noSearchRow.style.display = visibleCount === 0 ? '' : 'none';
             }
-            
+
             currentMatchIndex = matchedRows.length > 0 ? 0 : -1;
             highlightCurrentMatch();
             updateSearchNav();
@@ -1098,10 +1215,46 @@ $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
                 });
             });
         });
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('goto-page');
+    const btn   = document.getElementById('goto-btn');
+
+    if (!input || !btn) {
+        console.log('Go to page controls not found');
+        return;
+    }
+
+    const maxPageAttr = input.getAttribute('max');
+    const maxPage = maxPageAttr ? parseInt(maxPageAttr, 10) : 1;
+
+    function goToPage() {
+        let p = parseInt(input.value, 10);
+        if (isNaN(p)) return;
+
+        if (p < 1) p = 1;
+        if (p > maxPage) p = maxPage;
+
+        // If your page is not get.php, adjust path accordingly
+        window.location.href = '?page=' + p;
+    }
+
+    btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        goToPage();
+    });
+
+    input.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            goToPage();
+        }
+    });
+});
     </script>
 
     <?php include '../footer.php'; ?>
 </body>
 
 </html>
-
