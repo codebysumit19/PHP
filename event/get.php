@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['id']) && !isset($_POS
     header("Location: get.php");
     exit;
 }
-
+//vhgfghed
 // Initial load
 $result = $conn->query("SELECT * FROM events ORDER BY date DESC, stime DESC");
 ?>
